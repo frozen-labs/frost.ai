@@ -1,0 +1,9 @@
+**/build
+**/public
+**/node_modules
+**/dist
+**/.output
+**/coverage
+**/.turbo
+pnpm-lock.yaml
+routeTree.gen.ts
