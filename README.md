@@ -15,6 +15,7 @@
 <p align="center">
   <a href="https://github.com/frozen-labs/frost.ai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/frozen-labs/frost.ai?style=for-the-badge&cache=none" alt="License"></a>
   <a href="https://github.com/frozen-labs/frost.ai/stargazers"><img src="https://img.shields.io/github/stars/frozen-labs/frost.ai?style=for-the-badge&logo=github&cache=none" alt="Stargazers"></a>
+  <a href="https://discord.gg/YhRK2JSuQa"><img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" /></a>
 </p>
 
 <p align="center">
