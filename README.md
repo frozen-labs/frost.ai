@@ -14,19 +14,24 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/frozen-labs/frost.ai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/frozen-labs/frost.ai?style=for-the-badge&cache=none" alt="License"></a>
-  <a href="https://github.com/frozen-labs/frost.ai/stargazers"><img src="https://img.shields.io/github/stars/frozen-labs/frost.ai?style=for-the-badge&logo=github&cache=none" alt="Stargazers"></a>
+  <a href="https://github.com/frozen-labs/frost/blob/main/LICENSE"><img src="https://img.shields.io/github/license/frozen-labs/frost?style=for-the-badge&cache=none" alt="License"></a>
+  <a href="https://github.com/frozen-labs/frost/stargazers"><img src="https://img.shields.io/github/stars/frozen-labs/frost?style=for-the-badge&logo=github&cache=none" alt="Stargazers"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/frozen-labs/frost.ai/issues">Report an Issue</a>
+  <a href="https://github.com/frozen-labs/frost/issues">Report an Issue</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://github.com/frozen-labs/frost.ai/issues">Request a Feature</a>
+  <a href="https://github.com/frozen-labs/frost/issues">Request a Feature</a>
 </p>
 
 ---
 
-<a href="https://github.com/frozen-labs/frost.ai/blob/main/assets/application-analytics-preview.png"><img src="https://github.com/frozen-labs/frost.ai/blob/main/assets/application-analytics-preview.png" alt="application-analytics-preview"></a>
+> [!WARNING]
+> **⚠️ Active Development Notice**
+> 
+> Frost AI is currently under active development and is **NOT production-ready**. APIs may change, features may be incomplete, and bugs are expected. Use for development and testing purposes only.
+
+<a href="https://github.com/frozen-labs/frost/blob/main/assets/application-analytics-preview.png"><img src="https://github.com/frozen-labs/frost/blob/main/assets/application-analytics-preview.png" alt="application-analytics-preview"></a>
 
 ## About the Project
 
@@ -39,13 +44,13 @@
 - **Customer & Agent Analytics**: Track costs, usage, and profitability per customer.
 - **Real-time Metering**: Real-time cost tracking across OpenAI, Anthropic, Gemini, and more
 - **Know Your Margins**: Margin analysis per customer, feature, and AI agent.
-- **Scalable by Design**: Production-ready stack built for high-volume requests.
-- **5-Minute Setup**: Launch instantly with Docker.
+- **Scalable by Design**: Built for high-volume requests.
+- **5-Minute Setup**: Launch locally with Docker.
 - **Self-Hosted & Secure**: Your data, your infrastructure. Total privacy.
 
-## Getting Started in 5 Minutes
+## Deploy in 5 Minutes
 
-Deploy your own instance of Frost AI locally.
+Deploy your own instance of Frost locally for development and testing.
 
 ### Prerequisites
 
@@ -56,7 +61,7 @@ Deploy your own instance of Frost AI locally.
 ### Getting Started
 
 ```sh
-git clone https://github.com/frozen-labs/frost.ai.git
+git clone https://github.com/frozen-labs/frost.git
 cd frost.ai
 ```
 
@@ -70,7 +75,8 @@ cp /apps/fullstack/.env.example /apps/fullstack/.env
 make prod-up
 ```
 
-That's it\! Frost AI is now running at [**http://localhost:3000**](http://localhost:3000).
+That's it! Frost is now running at [**http://localhost:3000**](http://localhost:3000).
+
 To stop the application, run:
 
 ```sh
@@ -156,13 +162,13 @@ Our vision is to build it into a complete, end-to-end billing solution for AI co
 - [ ] **Advanced Analytics & Alerting**: Deeper insights, customizable reports, and automated alerts to notify you of cost spikes or low margins.
 - [ ] **Client-side SDKs**: Official libraries for Python and JS/TS to make integration trivial.
 
-Have an idea for our roadmap? [**Suggest a feature\!**](https://github.com/frozen-labs/frost.ai/issues)
+Have an idea for our roadmap? [**Suggest a feature!**](https://github.com/frozen-labs/frost/issues)
 
 ## Shape the Future of Frost AI
 
-Frost AI is a free and open-source project. We welcome contributions of all kinds\! Whether you're a developer, a designer, or just an enthusiast, you can help make this project better.
+Frost AI is a free and open-source project. We welcome contributions of all kinds! Whether you're a developer, a designer, or just an enthusiast, you can help make this project better.
 
-- **[Submit an Issue or Feature Request](https://github.com/frozen-labs/frost.ai/issues)**
+- **[Submit an Issue or Feature Request](https://github.com/frozen-labs/frost/issues)**
 - **Star our repo ⭐**
 
 <p align="center">
