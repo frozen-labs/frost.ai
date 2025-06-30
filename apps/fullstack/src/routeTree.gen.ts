@@ -19,6 +19,7 @@ import { Route as AgentsIndexRouteImport } from './routes/agents/index'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers/$customerId'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { ServerRoute as ApiHealthIndexServerRouteImport } from './routes/api/health/index'
+import { ServerRoute as ApiCustomersIndexServerRouteImport } from './routes/api/customers/index'
 import { ServerRoute as ApiSignalsTrackServerRouteImport } from './routes/api/signals/track'
 
 const rootServerRouteImport = createServerRootRoute()
@@ -61,6 +62,11 @@ const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
 const ApiHealthIndexServerRoute = ApiHealthIndexServerRouteImport.update({
   id: '/api/health/',
   path: '/api/health/',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
+const ApiCustomersIndexServerRoute = ApiCustomersIndexServerRouteImport.update({
+  id: '/api/customers/',
+  path: '/api/customers/',
   getParentRoute: () => rootServerRouteImport,
 } as any)
 const ApiSignalsTrackServerRoute = ApiSignalsTrackServerRouteImport.update({
@@ -134,27 +140,31 @@ export interface RootRouteChildren {
 }
 export interface FileServerRoutesByFullPath {
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/customers/': typeof ApiCustomersIndexServerRoute
   '/api/health/': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/signals/track' | '/api/health'
+  fullPaths: '/api/signals/track' | '/api/customers' | '/api/health'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/signals/track' | '/api/health'
-  id: '__root__' | '/api/signals/track' | '/api/health/'
+  to: '/api/signals/track' | '/api/customers' | '/api/health'
+  id: '__root__' | '/api/signals/track' | '/api/customers/' | '/api/health/'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
   ApiSignalsTrackServerRoute: typeof ApiSignalsTrackServerRoute
+  ApiCustomersIndexServerRoute: typeof ApiCustomersIndexServerRoute
   ApiHealthIndexServerRoute: typeof ApiHealthIndexServerRoute
 }
 
@@ -220,6 +230,13 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiHealthIndexServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/customers/': {
+      id: '/api/customers/'
+      path: '/api/customers'
+      fullPath: '/api/customers'
+      preLoaderRoute: typeof ApiCustomersIndexServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/signals/track': {
       id: '/api/signals/track'
       path: '/api/signals/track'
@@ -256,6 +273,7 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiSignalsTrackServerRoute: ApiSignalsTrackServerRoute,
+  ApiCustomersIndexServerRoute: ApiCustomersIndexServerRoute,
   ApiHealthIndexServerRoute: ApiHealthIndexServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport

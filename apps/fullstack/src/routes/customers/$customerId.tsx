@@ -13,7 +13,7 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { getCustomer, saveCustomer } from "~/lib/customers/customer.functions";
+import { getCustomer, saveCustomer } from "~/lib/customers";
 import { type Customer } from "~/lib/database";
 
 export const Route = createFileRoute("/customers/$customerId")({
@@ -54,10 +54,18 @@ function CustomerFormPage() {
           },
         });
 
-        toast.success(isNewCustomer ? "Customer created successfully!" : "Customer updated successfully!");
+        toast.success(
+          isNewCustomer
+            ? "Customer created successfully!"
+            : "Customer updated successfully!"
+        );
         navigate({ to: "/customers" });
       } catch (error) {
-        toast.error(isNewCustomer ? "Failed to create customer" : "Failed to update customer");
+        toast.error(
+          isNewCustomer
+            ? "Failed to create customer"
+            : "Failed to update customer"
+        );
         console.error("Error saving customer:", error);
       }
     },
@@ -136,8 +144,8 @@ function CustomerFormPage() {
                     {isSubmitting
                       ? "..."
                       : isNewCustomer
-                        ? "Create Customer"
-                        : "Save Changes"}
+                      ? "Create Customer"
+                      : "Save Changes"}
                   </Button>
                   <Button
                     type="button"

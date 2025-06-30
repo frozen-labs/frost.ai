@@ -26,9 +26,7 @@ export const customers = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [
-    index("customers_name_idx").on(table.name),
-  ]
+  (table) => [index("customers_name_idx").on(table.name)]
 );
 
 export const agents = pgTable(
@@ -137,20 +135,16 @@ export const agentSignalLogsRelations = relations(
 // ============================================================================
 
 // Insert schemas
-export const insertCustomerSchema = createInsertSchema(customers as any);
-export const insertAgentSchema = createInsertSchema(agents as any);
-export const insertAgentSignalSchema = createInsertSchema(agentSignals as any);
-export const insertAgentSignalLogSchema = createInsertSchema(
-  agentSignalLogs as any
-);
+export const insertCustomerSchema = createInsertSchema(customers);
+export const insertAgentSchema = createInsertSchema(agents);
+export const insertAgentSignalSchema = createInsertSchema(agentSignals);
+export const insertAgentSignalLogSchema = createInsertSchema(agentSignalLogs);
 
 // Select schemas
-export const selectCustomerSchema = createSelectSchema(customers as any);
-export const selectAgentSchema = createSelectSchema(agents as any);
-export const selectAgentSignalSchema = createSelectSchema(agentSignals as any);
-export const selectAgentSignalLogSchema = createSelectSchema(
-  agentSignalLogs as any
-);
+export const selectCustomerSchema = createSelectSchema(customers);
+export const selectAgentSchema = createSelectSchema(agents);
+export const selectAgentSignalSchema = createSelectSchema(agentSignals);
+export const selectAgentSignalLogSchema = createSelectSchema(agentSignalLogs);
 
 // Types
 export type Customer = typeof customers.$inferSelect;
