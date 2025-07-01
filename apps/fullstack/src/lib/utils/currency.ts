@@ -60,3 +60,19 @@ export function parseCurrencyInput(input: string): number {
 export function formatCurrencyInput(cents: number): string {
   return centsToDollars(cents).toFixed(2);
 }
+
+/**
+ * Format token costs with high precision (up to 6 decimal places)
+ * @param cents - Price in cents
+ * @param locale - Locale for formatting (defaults to 'en-US')
+ * @returns Formatted currency string with high precision
+ */
+export function formatTokenCost(cents: number, locale: string = 'en-US'): string {
+  const dollars = centsToDollars(cents);
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  }).format(dollars);
+}

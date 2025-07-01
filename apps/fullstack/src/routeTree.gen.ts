@@ -18,8 +18,14 @@ import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
 import { Route as AgentsIndexRouteImport } from './routes/agents/index'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers/$customerId'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
+import { Route as AnalyticsTokenUsageIndexRouteImport } from './routes/analytics/token-usage/index'
+import { ServerRoute as ApiTokenUsageIndexServerRouteImport } from './routes/api/token-usage/index'
 import { ServerRoute as ApiHealthIndexServerRouteImport } from './routes/api/health/index'
 import { ServerRoute as ApiCustomersIndexServerRouteImport } from './routes/api/customers/index'
+import { ServerRoute as ApiTokenUsageTrackServerRouteImport } from './routes/api/token-usage/track'
+import { ServerRoute as ApiTokenUsageSummaryServerRouteImport } from './routes/api/token-usage/summary'
+import { ServerRoute as ApiTokenUsageSummariesServerRouteImport } from './routes/api/token-usage/summaries'
+import { ServerRoute as ApiTokenUsageByModelServerRouteImport } from './routes/api/token-usage/by-model'
 import { ServerRoute as ApiSignalsTrackServerRouteImport } from './routes/api/signals/track'
 
 const rootServerRouteImport = createServerRootRoute()
@@ -59,6 +65,18 @@ const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
   path: '/$agentId',
   getParentRoute: () => AgentsRouteRoute,
 } as any)
+const AnalyticsTokenUsageIndexRoute =
+  AnalyticsTokenUsageIndexRouteImport.update({
+    id: '/analytics/token-usage/',
+    path: '/analytics/token-usage/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiTokenUsageIndexServerRoute =
+  ApiTokenUsageIndexServerRouteImport.update({
+    id: '/api/token-usage/',
+    path: '/api/token-usage/',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
 const ApiHealthIndexServerRoute = ApiHealthIndexServerRouteImport.update({
   id: '/api/health/',
   path: '/api/health/',
@@ -69,6 +87,30 @@ const ApiCustomersIndexServerRoute = ApiCustomersIndexServerRouteImport.update({
   path: '/api/customers/',
   getParentRoute: () => rootServerRouteImport,
 } as any)
+const ApiTokenUsageTrackServerRoute =
+  ApiTokenUsageTrackServerRouteImport.update({
+    id: '/api/token-usage/track',
+    path: '/api/token-usage/track',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
+const ApiTokenUsageSummaryServerRoute =
+  ApiTokenUsageSummaryServerRouteImport.update({
+    id: '/api/token-usage/summary',
+    path: '/api/token-usage/summary',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
+const ApiTokenUsageSummariesServerRoute =
+  ApiTokenUsageSummariesServerRouteImport.update({
+    id: '/api/token-usage/summaries',
+    path: '/api/token-usage/summaries',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
+const ApiTokenUsageByModelServerRoute =
+  ApiTokenUsageByModelServerRouteImport.update({
+    id: '/api/token-usage/by-model',
+    path: '/api/token-usage/by-model',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
 const ApiSignalsTrackServerRoute = ApiSignalsTrackServerRouteImport.update({
   id: '/api/signals/track',
   path: '/api/signals/track',
@@ -83,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/agents/': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/analytics/token-usage': typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,6 +134,7 @@ export interface FileRoutesByTo {
   '/agents': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/analytics/token-usage': typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,6 +145,7 @@ export interface FileRoutesById {
   '/agents/': typeof AgentsIndexRoute
   '/analytics/': typeof AnalyticsIndexRoute
   '/customers/': typeof CustomersIndexRoute
+  '/analytics/token-usage/': typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -112,6 +157,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/analytics'
     | '/customers'
+    | '/analytics/token-usage'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,6 +166,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/analytics'
     | '/customers'
+    | '/analytics/token-usage'
   id:
     | '__root__'
     | '/'
@@ -129,6 +176,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/analytics/'
     | '/customers/'
+    | '/analytics/token-usage/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -137,35 +185,81 @@ export interface RootRouteChildren {
   CustomersCustomerIdRoute: typeof CustomersCustomerIdRoute
   AnalyticsIndexRoute: typeof AnalyticsIndexRoute
   CustomersIndexRoute: typeof CustomersIndexRoute
+  AnalyticsTokenUsageIndexRoute: typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileServerRoutesByFullPath {
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/token-usage/by-model': typeof ApiTokenUsageByModelServerRoute
+  '/api/token-usage/summaries': typeof ApiTokenUsageSummariesServerRoute
+  '/api/token-usage/summary': typeof ApiTokenUsageSummaryServerRoute
+  '/api/token-usage/track': typeof ApiTokenUsageTrackServerRoute
   '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
+  '/api/token-usage': typeof ApiTokenUsageIndexServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/token-usage/by-model': typeof ApiTokenUsageByModelServerRoute
+  '/api/token-usage/summaries': typeof ApiTokenUsageSummariesServerRoute
+  '/api/token-usage/summary': typeof ApiTokenUsageSummaryServerRoute
+  '/api/token-usage/track': typeof ApiTokenUsageTrackServerRoute
   '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
+  '/api/token-usage': typeof ApiTokenUsageIndexServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/token-usage/by-model': typeof ApiTokenUsageByModelServerRoute
+  '/api/token-usage/summaries': typeof ApiTokenUsageSummariesServerRoute
+  '/api/token-usage/summary': typeof ApiTokenUsageSummaryServerRoute
+  '/api/token-usage/track': typeof ApiTokenUsageTrackServerRoute
   '/api/customers/': typeof ApiCustomersIndexServerRoute
   '/api/health/': typeof ApiHealthIndexServerRoute
+  '/api/token-usage/': typeof ApiTokenUsageIndexServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/signals/track' | '/api/customers' | '/api/health'
+  fullPaths:
+    | '/api/signals/track'
+    | '/api/token-usage/by-model'
+    | '/api/token-usage/summaries'
+    | '/api/token-usage/summary'
+    | '/api/token-usage/track'
+    | '/api/customers'
+    | '/api/health'
+    | '/api/token-usage'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/signals/track' | '/api/customers' | '/api/health'
-  id: '__root__' | '/api/signals/track' | '/api/customers/' | '/api/health/'
+  to:
+    | '/api/signals/track'
+    | '/api/token-usage/by-model'
+    | '/api/token-usage/summaries'
+    | '/api/token-usage/summary'
+    | '/api/token-usage/track'
+    | '/api/customers'
+    | '/api/health'
+    | '/api/token-usage'
+  id:
+    | '__root__'
+    | '/api/signals/track'
+    | '/api/token-usage/by-model'
+    | '/api/token-usage/summaries'
+    | '/api/token-usage/summary'
+    | '/api/token-usage/track'
+    | '/api/customers/'
+    | '/api/health/'
+    | '/api/token-usage/'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
   ApiSignalsTrackServerRoute: typeof ApiSignalsTrackServerRoute
+  ApiTokenUsageByModelServerRoute: typeof ApiTokenUsageByModelServerRoute
+  ApiTokenUsageSummariesServerRoute: typeof ApiTokenUsageSummariesServerRoute
+  ApiTokenUsageSummaryServerRoute: typeof ApiTokenUsageSummaryServerRoute
+  ApiTokenUsageTrackServerRoute: typeof ApiTokenUsageTrackServerRoute
   ApiCustomersIndexServerRoute: typeof ApiCustomersIndexServerRoute
   ApiHealthIndexServerRoute: typeof ApiHealthIndexServerRoute
+  ApiTokenUsageIndexServerRoute: typeof ApiTokenUsageIndexServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -219,10 +313,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsAgentIdRouteImport
       parentRoute: typeof AgentsRouteRoute
     }
+    '/analytics/token-usage/': {
+      id: '/analytics/token-usage/'
+      path: '/analytics/token-usage'
+      fullPath: '/analytics/token-usage'
+      preLoaderRoute: typeof AnalyticsTokenUsageIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 declare module '@tanstack/react-start/server' {
   interface ServerFileRoutesByPath {
+    '/api/token-usage/': {
+      id: '/api/token-usage/'
+      path: '/api/token-usage'
+      fullPath: '/api/token-usage'
+      preLoaderRoute: typeof ApiTokenUsageIndexServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/health/': {
       id: '/api/health/'
       path: '/api/health'
@@ -235,6 +343,34 @@ declare module '@tanstack/react-start/server' {
       path: '/api/customers'
       fullPath: '/api/customers'
       preLoaderRoute: typeof ApiCustomersIndexServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/token-usage/track': {
+      id: '/api/token-usage/track'
+      path: '/api/token-usage/track'
+      fullPath: '/api/token-usage/track'
+      preLoaderRoute: typeof ApiTokenUsageTrackServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/token-usage/summary': {
+      id: '/api/token-usage/summary'
+      path: '/api/token-usage/summary'
+      fullPath: '/api/token-usage/summary'
+      preLoaderRoute: typeof ApiTokenUsageSummaryServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/token-usage/summaries': {
+      id: '/api/token-usage/summaries'
+      path: '/api/token-usage/summaries'
+      fullPath: '/api/token-usage/summaries'
+      preLoaderRoute: typeof ApiTokenUsageSummariesServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/token-usage/by-model': {
+      id: '/api/token-usage/by-model'
+      path: '/api/token-usage/by-model'
+      fullPath: '/api/token-usage/by-model'
+      preLoaderRoute: typeof ApiTokenUsageByModelServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
     '/api/signals/track': {
@@ -267,14 +403,20 @@ const rootRouteChildren: RootRouteChildren = {
   CustomersCustomerIdRoute: CustomersCustomerIdRoute,
   AnalyticsIndexRoute: AnalyticsIndexRoute,
   CustomersIndexRoute: CustomersIndexRoute,
+  AnalyticsTokenUsageIndexRoute: AnalyticsTokenUsageIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiSignalsTrackServerRoute: ApiSignalsTrackServerRoute,
+  ApiTokenUsageByModelServerRoute: ApiTokenUsageByModelServerRoute,
+  ApiTokenUsageSummariesServerRoute: ApiTokenUsageSummariesServerRoute,
+  ApiTokenUsageSummaryServerRoute: ApiTokenUsageSummaryServerRoute,
+  ApiTokenUsageTrackServerRoute: ApiTokenUsageTrackServerRoute,
   ApiCustomersIndexServerRoute: ApiCustomersIndexServerRoute,
   ApiHealthIndexServerRoute: ApiHealthIndexServerRoute,
+  ApiTokenUsageIndexServerRoute: ApiTokenUsageIndexServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport
   ._addFileChildren(rootServerRouteChildren)

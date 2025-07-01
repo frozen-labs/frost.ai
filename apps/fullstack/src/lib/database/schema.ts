@@ -1,11 +1,14 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   uuid as pgUuid,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -101,6 +104,84 @@ export const agentSignalLogs = pgTable(
   ]
 );
 
+export const llmModels = pgTable(
+  "llm_models",
+  {
+    id: pgUuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidV7()),
+    provider: varchar("provider", { length: 50 }).notNull(),
+    modelName: varchar("model_name", { length: 100 }).notNull(),
+    displayName: varchar("display_name", { length: 100 }).notNull(),
+    inputCostPer1kTokens: numeric("input_cost_per_1k_tokens", {
+      precision: 10,
+      scale: 6,
+    }).notNull(),
+    outputCostPer1kTokens: numeric("output_cost_per_1k_tokens", {
+      precision: 10,
+      scale: 6,
+    }).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("llm_models_provider_model_unique").on(
+      table.provider,
+      table.modelName
+    ),
+    index("llm_models_provider_idx").on(table.provider),
+    index("llm_models_model_name_idx").on(table.modelName),
+    index("llm_models_is_active_idx").on(table.isActive),
+  ]
+);
+
+export const tokenUsage = pgTable(
+  "token_usage",
+  {
+    id: pgUuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidV7()),
+    customerId: pgUuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    agentId: pgUuid("agent_id")
+      .notNull()
+      .references(() => agents.id, { onDelete: "cascade" }),
+    modelId: pgUuid("model_id")
+      .notNull()
+      .references(() => llmModels.id, { onDelete: "restrict" }),
+    requestId: varchar("request_id", { length: 255 }),
+    sessionId: varchar("session_id", { length: 255 }),
+    inputTokens: integer("input_tokens").notNull(),
+    outputTokens: integer("output_tokens").notNull(),
+    totalTokens: integer("total_tokens").notNull(),
+    inputCost: integer("input_cost").notNull(),
+    outputCost: integer("output_cost").notNull(),
+    totalCost: integer("total_cost").notNull(),
+    metadata: jsonb("metadata").$type<Record<string, any>>(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("token_usage_customer_idx").on(table.customerId),
+    index("token_usage_agent_idx").on(table.agentId),
+    index("token_usage_model_idx").on(table.modelId),
+    index("token_usage_created_at_idx").on(table.createdAt),
+    index("token_usage_session_idx").on(table.sessionId),
+    index("token_usage_customer_created_idx").on(
+      table.customerId,
+      table.createdAt
+    ),
+  ]
+);
+
+
 // ============================================================================
 // RELATIONS
 // ============================================================================
@@ -130,6 +211,26 @@ export const agentSignalLogsRelations = relations(
   })
 );
 
+export const llmModelsRelations = relations(llmModels, ({ many }) => ({
+  tokenUsages: many(tokenUsage),
+}));
+
+export const tokenUsageRelations = relations(tokenUsage, ({ one }) => ({
+  customer: one(customers, {
+    fields: [tokenUsage.customerId],
+    references: [customers.id],
+  }),
+  agent: one(agents, {
+    fields: [tokenUsage.agentId],
+    references: [agents.id],
+  }),
+  model: one(llmModels, {
+    fields: [tokenUsage.modelId],
+    references: [llmModels.id],
+  }),
+}));
+
+
 // ============================================================================
 // ZOD SCHEMAS (for validation)
 // ============================================================================
@@ -139,12 +240,16 @@ export const insertCustomerSchema = createInsertSchema(customers);
 export const insertAgentSchema = createInsertSchema(agents);
 export const insertAgentSignalSchema = createInsertSchema(agentSignals);
 export const insertAgentSignalLogSchema = createInsertSchema(agentSignalLogs);
+export const insertLlmModelSchema = createInsertSchema(llmModels);
+export const insertTokenUsageSchema = createInsertSchema(tokenUsage);
 
 // Select schemas
 export const selectCustomerSchema = createSelectSchema(customers);
 export const selectAgentSchema = createSelectSchema(agents);
 export const selectAgentSignalSchema = createSelectSchema(agentSignals);
 export const selectAgentSignalLogSchema = createSelectSchema(agentSignalLogs);
+export const selectLlmModelSchema = createSelectSchema(llmModels);
+export const selectTokenUsageSchema = createSelectSchema(tokenUsage);
 
 // Types
 export type Customer = typeof customers.$inferSelect;
@@ -155,3 +260,7 @@ export type AgentSignal = typeof agentSignals.$inferSelect;
 export type NewAgentSignal = typeof agentSignals.$inferInsert;
 export type AgentSignalLog = typeof agentSignalLogs.$inferSelect;
 export type NewAgentSignalLog = typeof agentSignalLogs.$inferInsert;
+export type LlmModel = typeof llmModels.$inferSelect;
+export type NewLlmModel = typeof llmModels.$inferInsert;
+export type TokenUsage = typeof tokenUsage.$inferSelect;
+export type NewTokenUsage = typeof tokenUsage.$inferInsert;
