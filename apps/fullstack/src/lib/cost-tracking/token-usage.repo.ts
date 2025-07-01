@@ -24,7 +24,6 @@ export interface TokenUsageFilters {
   customerId?: string;
   agentId?: string;
   modelId?: string;
-  sessionId?: string;
   startDate?: Date;
   endDate?: Date;
 }
@@ -59,7 +58,6 @@ export const tokenUsageRepo = {
         agentId: tokenUsage.agentId,
         modelId: tokenUsage.modelId,
         requestId: tokenUsage.requestId,
-        sessionId: tokenUsage.sessionId,
         inputTokens: tokenUsage.inputTokens,
         outputTokens: tokenUsage.outputTokens,
         totalTokens: tokenUsage.totalTokens,
@@ -97,8 +95,6 @@ export const tokenUsageRepo = {
       conditions.push(eq(tokenUsage.agentId, filters.agentId));
     if (filters.modelId)
       conditions.push(eq(tokenUsage.modelId, filters.modelId));
-    if (filters.sessionId)
-      conditions.push(eq(tokenUsage.sessionId, filters.sessionId));
     if (filters.startDate && filters.endDate) {
       conditions.push(
         between(tokenUsage.createdAt, filters.startDate, filters.endDate)
@@ -138,8 +134,6 @@ export const tokenUsageRepo = {
       conditions.push(eq(tokenUsage.agentId, filters.agentId));
     if (filters.modelId)
       conditions.push(eq(tokenUsage.modelId, filters.modelId));
-    if (filters.sessionId)
-      conditions.push(eq(tokenUsage.sessionId, filters.sessionId));
     if (filters.startDate && filters.endDate) {
       conditions.push(
         between(tokenUsage.createdAt, filters.startDate, filters.endDate)

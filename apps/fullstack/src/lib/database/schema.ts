@@ -156,7 +156,6 @@ export const tokenUsage = pgTable(
       .notNull()
       .references(() => llmModels.id, { onDelete: "restrict" }),
     requestId: varchar("request_id", { length: 255 }),
-    sessionId: varchar("session_id", { length: 255 }),
     inputTokens: integer("input_tokens").notNull(),
     outputTokens: integer("output_tokens").notNull(),
     totalTokens: integer("total_tokens").notNull(),
@@ -173,7 +172,6 @@ export const tokenUsage = pgTable(
     index("token_usage_agent_idx").on(table.agentId),
     index("token_usage_model_idx").on(table.modelId),
     index("token_usage_created_at_idx").on(table.createdAt),
-    index("token_usage_session_idx").on(table.sessionId),
     index("token_usage_customer_created_idx").on(
       table.customerId,
       table.createdAt

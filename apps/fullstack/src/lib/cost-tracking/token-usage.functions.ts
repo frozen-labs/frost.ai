@@ -6,7 +6,6 @@ const tokenUsageFiltersSchema = z.object({
   customerId: z.string().uuid().optional(),
   agentId: z.string().uuid().optional(),
   modelId: z.string().uuid().optional(),
-  sessionId: z.string().uuid().optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
 });
@@ -18,7 +17,6 @@ export const getTokenUsageSummary = createServerFn({ method: "GET" })
       customerId: data.customerId,
       agentId: data.agentId,
       modelId: data.modelId,
-      sessionId: data.sessionId,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
       endDate: data.endDate ? new Date(data.endDate) : undefined,
     };
@@ -33,7 +31,6 @@ export const getTokenUsageByModel = createServerFn({ method: "GET" })
       customerId: data.customerId,
       agentId: data.agentId,
       modelId: data.modelId,
-      sessionId: data.sessionId,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
       endDate: data.endDate ? new Date(data.endDate) : undefined,
     };
@@ -52,7 +49,6 @@ export const getTokenUsageWithRelations = createServerFn({ method: "GET" })
       customerId: data.customerId,
       agentId: data.agentId,
       modelId: data.modelId,
-      sessionId: data.sessionId,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
       endDate: data.endDate ? new Date(data.endDate) : undefined,
     };
