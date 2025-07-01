@@ -51,7 +51,22 @@ export const tokenUsageRepo = {
     filters: TokenUsageFilters,
     limit = 100
   ): Promise<TokenUsageWithRelations[]> {
-    let query = db
+    const conditions = [];
+    if (filters.customerId)
+      conditions.push(eq(tokenUsage.customerId, filters.customerId));
+    if (filters.agentId)
+      conditions.push(eq(tokenUsage.agentId, filters.agentId));
+    if (filters.modelId)
+      conditions.push(eq(tokenUsage.modelId, filters.modelId));
+    if (filters.startDate && filters.endDate) {
+      conditions.push(
+        between(tokenUsage.createdAt, filters.startDate, filters.endDate)
+      );
+    } else if (filters.startDate) {
+      conditions.push(gte(tokenUsage.createdAt, filters.startDate));
+    }
+
+    const query = db
       .select({
         id: tokenUsage.id,
         customerId: tokenUsage.customerId,
@@ -85,27 +100,9 @@ export const tokenUsageRepo = {
       .innerJoin(customers, eq(tokenUsage.customerId, customers.id))
       .innerJoin(agents, eq(tokenUsage.agentId, agents.id))
       .innerJoin(llmModels, eq(tokenUsage.modelId, llmModels.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(tokenUsage.createdAt))
       .limit(limit);
-
-    const conditions = [];
-    if (filters.customerId)
-      conditions.push(eq(tokenUsage.customerId, filters.customerId));
-    if (filters.agentId)
-      conditions.push(eq(tokenUsage.agentId, filters.agentId));
-    if (filters.modelId)
-      conditions.push(eq(tokenUsage.modelId, filters.modelId));
-    if (filters.startDate && filters.endDate) {
-      conditions.push(
-        between(tokenUsage.createdAt, filters.startDate, filters.endDate)
-      );
-    } else if (filters.startDate) {
-      conditions.push(gte(tokenUsage.createdAt, filters.startDate));
-    }
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
 
     return await query;
   },
@@ -117,16 +114,6 @@ export const tokenUsageRepo = {
     totalCost: number;
     requestCount: number;
   }> {
-    let query = db
-      .select({
-        totalInputTokens: sql<number>`COALESCE(SUM(${tokenUsage.inputTokens}), 0)`,
-        totalOutputTokens: sql<number>`COALESCE(SUM(${tokenUsage.outputTokens}), 0)`,
-        totalTokens: sql<number>`COALESCE(SUM(${tokenUsage.totalTokens}), 0)`,
-        totalCost: sql<number>`COALESCE(SUM(${tokenUsage.totalCost}), 0)`,
-        requestCount: sql<number>`COUNT(*)`,
-      })
-      .from(tokenUsage);
-
     const conditions = [];
     if (filters.customerId)
       conditions.push(eq(tokenUsage.customerId, filters.customerId));
@@ -142,9 +129,16 @@ export const tokenUsageRepo = {
       conditions.push(gte(tokenUsage.createdAt, filters.startDate));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = db
+      .select({
+        totalInputTokens: sql<number>`COALESCE(SUM(${tokenUsage.inputTokens}), 0)`,
+        totalOutputTokens: sql<number>`COALESCE(SUM(${tokenUsage.outputTokens}), 0)`,
+        totalTokens: sql<number>`COALESCE(SUM(${tokenUsage.totalTokens}), 0)`,
+        totalCost: sql<number>`COALESCE(SUM(${tokenUsage.totalCost}), 0)`,
+        requestCount: sql<number>`COUNT(*)`,
+      })
+      .from(tokenUsage)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
 
     const results = await query;
     return results[0];
@@ -162,21 +156,6 @@ export const tokenUsageRepo = {
       requestCount: number;
     }>
   > {
-    let query = db
-      .select({
-        modelId: tokenUsage.modelId,
-        modelName: llmModels.modelName,
-        providerName: llmModels.provider,
-        totalInputTokens: sql<number>`COALESCE(SUM(${tokenUsage.inputTokens}), 0)`,
-        totalOutputTokens: sql<number>`COALESCE(SUM(${tokenUsage.outputTokens}), 0)`,
-        totalTokens: sql<number>`COALESCE(SUM(${tokenUsage.totalTokens}), 0)`,
-        totalCost: sql<number>`COALESCE(SUM(${tokenUsage.totalCost}), 0)`,
-        requestCount: sql<number>`COUNT(*)`,
-      })
-      .from(tokenUsage)
-      .innerJoin(llmModels, eq(tokenUsage.modelId, llmModels.id))
-      .groupBy(tokenUsage.modelId, llmModels.modelName, llmModels.provider);
-
     const conditions = [];
     if (filters.customerId)
       conditions.push(eq(tokenUsage.customerId, filters.customerId));
@@ -190,9 +169,21 @@ export const tokenUsageRepo = {
       conditions.push(gte(tokenUsage.createdAt, filters.startDate));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = db
+      .select({
+        modelId: tokenUsage.modelId,
+        modelName: llmModels.modelName,
+        providerName: llmModels.provider,
+        totalInputTokens: sql<number>`COALESCE(SUM(${tokenUsage.inputTokens}), 0)`,
+        totalOutputTokens: sql<number>`COALESCE(SUM(${tokenUsage.outputTokens}), 0)`,
+        totalTokens: sql<number>`COALESCE(SUM(${tokenUsage.totalTokens}), 0)`,
+        totalCost: sql<number>`COALESCE(SUM(${tokenUsage.totalCost}), 0)`,
+        requestCount: sql<number>`COUNT(*)`,
+      })
+      .from(tokenUsage)
+      .innerJoin(llmModels, eq(tokenUsage.modelId, llmModels.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .groupBy(tokenUsage.modelId, llmModels.modelName, llmModels.provider);
 
     return await query;
   },
@@ -201,7 +192,7 @@ export const tokenUsageRepo = {
     const result = await db
       .delete(tokenUsage)
       .where(eq(tokenUsage.customerId, customerId));
-    return result.count;
+    return result.rowCount || 0;
   },
 
 };
