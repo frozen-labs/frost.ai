@@ -46,8 +46,8 @@ export function UsageDashboard({ customerId, agentId }: UsageDashboardProps) {
     setLoading(true);
     try {
       const filters = {
-        ...(customerId && { customerId }),
-        ...(agentId && { agentId }),
+        customerId,
+        agentId,
         startDate: dateRange.from.toISOString(),
         endDate: dateRange.to.toISOString(),
       };
