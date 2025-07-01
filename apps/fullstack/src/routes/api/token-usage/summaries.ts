@@ -1,6 +1,6 @@
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { tokenUsageSummariesRepo } from "../../../lib/cost-tracking/token-usage-summaries.repo";
+import { tokenUsageRepo } from "../../../lib/cost-tracking/token-usage.repo";
 
 const querySchema = z.object({
   customerId: z.string().uuid().optional(),
@@ -30,7 +30,7 @@ export const ServerRoute = createServerFileRoute(
         endDate: query.endDate ? new Date(query.endDate) : undefined,
       };
 
-      const summaries = await tokenUsageSummariesRepo.find(filters);
+      const summaries = await tokenUsageRepo.getTotalUsage(filters);
 
       return new Response(JSON.stringify({ summaries }), {
         status: 200,

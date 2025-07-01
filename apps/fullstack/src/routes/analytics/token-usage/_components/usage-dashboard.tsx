@@ -16,6 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import {
+  getTokenUsageByModel,
+  getTokenUsageSummary,
+} from "~/lib/cost-tracking/token-usage.functions";
 import { UsageByModelTable } from "./usage-by-model-table";
 import { UsageChart } from "./usage-chart";
 import { UsageSummaryCard } from "./usage-summary-card";
@@ -41,36 +45,23 @@ export function UsageDashboard({ customerId, agentId }: UsageDashboardProps) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const filters = {
         ...(customerId && { customerId }),
         ...(agentId && { agentId }),
         startDate: dateRange.from.toISOString(),
         endDate: dateRange.to.toISOString(),
-      });
+      };
 
       // Fetch summary
-      const summaryRes = await fetch(`/api/token-usage/summary?${params}`);
-      const summaryJson = await summaryRes.json();
-      setSummaryData(summaryJson.summary);
+      const summaryData = await getTokenUsageSummary({ data: filters });
+      setSummaryData(summaryData);
 
       // Fetch by model
-      const modelRes = await fetch(`/api/token-usage/by-model?${params}`);
-      const modelJson = await modelRes.json();
-      setModelData(modelJson.usage);
+      const modelData = await getTokenUsageByModel({ data: filters });
+      setModelData(modelData);
 
-      // Fetch summaries for chart
-      const summariesParams = new URLSearchParams({
-        ...(customerId && { customerId }),
-        ...(agentId && { agentId }),
-        periodType,
-        startDate: dateRange.from.toISOString(),
-        endDate: dateRange.to.toISOString(),
-      });
-      const summariesRes = await fetch(
-        `/api/token-usage/summaries?${summariesParams}`
-      );
-      const summariesJson = await summariesRes.json();
-      setChartData(summariesJson.summaries);
+      // For now, use summary data for chart until we implement time-series data
+      setChartData([summaryData]);
     } catch (error) {
       console.error("Error fetching usage data:", error);
     } finally {
