@@ -15,6 +15,7 @@ Extend Frost AI billing platform to support comprehensive LLM token tracking and
 ## Requirements
 
 - Database migrations are done via the `pnpm run db:push` command, not the `pnpm run db:migrate` command. We directly use the `drizzle-kit` CLI tool to push changes to the database.
+- for Database chnages, you just need to update the `schema.ts` file and run `pnpm run db:push` to apply the changes to the database.
 - You are allowed to break the existing API, Logic and Database schema, as we will migrate to the new API in a future release.
 
 ## Implementation Phases
