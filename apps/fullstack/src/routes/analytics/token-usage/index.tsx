@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { UsageDashboard } from "./_components";
 
+const searchSchema = z.object({
+  customerId: z.string().optional(),
+  agentId: z.string().optional(),
+});
+
 export const Route = createFileRoute("/analytics/token-usage/")({
+  validateSearch: searchSchema,
   component: TokenUsagePage,
 });
 
 function TokenUsagePage() {
-  // In a real application, you would get these from context or props
-  // For now, we'll leave them undefined to show all usage
-  const customerId = undefined;
-  const agentId = undefined;
+  const { customerId, agentId } = Route.useSearch();
 
   return (
     <div className="container mx-auto py-8">
