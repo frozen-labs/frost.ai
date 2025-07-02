@@ -112,7 +112,6 @@ export const validModels = pgTable(
     modelIdentifier: varchar("model_identifier", { length: 255 })
       .notNull()
       .unique(),
-    displayName: varchar("display_name", { length: 255 }).notNull(),
     inputCostPer1kTokensCents: integer(
       "input_cost_per_1k_tokens_cents"
     ).notNull(),

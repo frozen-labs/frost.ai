@@ -14,8 +14,8 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
-import { getModel, saveModel } from "~/lib/metering/model.functions";
 import { type ValidModel } from "~/lib/database";
+import { getModel, saveModel } from "~/lib/metering/model.functions";
 
 export const Route = createFileRoute("/models/$modelId")({
   loader: async ({ params }) => {
@@ -29,7 +29,6 @@ export const Route = createFileRoute("/models/$modelId")({
 
 const formSchema = z.object({
   modelIdentifier: z.string().min(1, "Model identifier is required"),
-  displayName: z.string().min(1, "Display name is required"),
   inputCostPer1kTokensCents: z.number().min(0, "Input cost must be positive"),
   outputCostPer1kTokensCents: z.number().min(0, "Output cost must be positive"),
   isActive: z.boolean(),
@@ -46,13 +45,12 @@ function ModelFormPage() {
   const form = useForm({
     defaultValues: {
       modelIdentifier: model?.modelIdentifier || "",
-      displayName: model?.displayName || "",
       inputCostPer1kTokensCents: model?.inputCostPer1kTokensCents || 0,
       outputCostPer1kTokensCents: model?.outputCostPer1kTokensCents || 0,
       isActive: model?.isActive ?? true,
     },
     validators: {
-      onChange: formSchema,
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
       try {
@@ -71,9 +69,7 @@ function ModelFormPage() {
         navigate({ to: "/models" });
       } catch (error) {
         toast.error(
-          isNewModel
-            ? "Failed to create model"
-            : "Failed to update model"
+          isNewModel ? "Failed to create model" : "Failed to update model"
         );
         console.error("Error saving model:", error);
       }
@@ -89,6 +85,7 @@ function ModelFormPage() {
   };
 
   const parseCentsFromDecimal = (value: string) => {
+    if (value === "" || value === null || value === undefined) return 0;
     const decimal = parseFloat(value);
     return isNaN(decimal) ? 0 : Math.round(decimal * 100);
   };
@@ -141,31 +138,13 @@ function ModelFormPage() {
               )}
             </form.Field>
 
-            <form.Field name="displayName">
-              {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor={field.name}>Display Name</Label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder="GPT-4o, Claude 3.5 Sonnet, etc."
-                  />
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm text-red-600">
-                      {field.state.meta.errors.join(", ")}
-                    </p>
-                  )}
-                </div>
-              )}
-            </form.Field>
 
             <form.Field name="inputCostPer1kTokensCents">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor={field.name}>Input Cost per 1K Tokens ($)</Label>
+                  <Label htmlFor={field.name}>
+                    Input Cost per 1K Tokens ($)
+                  </Label>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -173,7 +152,9 @@ function ModelFormPage() {
                     step="0.0001"
                     min="0"
                     value={formatCentsToDecimal(field.state.value)}
-                    onChange={(e) => field.handleChange(parseCentsFromDecimal(e.target.value))}
+                    onChange={(e) =>
+                      field.handleChange(parseCentsFromDecimal(e.target.value))
+                    }
                     onBlur={field.handleBlur}
                     placeholder="0.0030"
                   />
@@ -189,7 +170,9 @@ function ModelFormPage() {
             <form.Field name="outputCostPer1kTokensCents">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor={field.name}>Output Cost per 1K Tokens ($)</Label>
+                  <Label htmlFor={field.name}>
+                    Output Cost per 1K Tokens ($)
+                  </Label>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -197,7 +180,9 @@ function ModelFormPage() {
                     step="0.0001"
                     min="0"
                     value={formatCentsToDecimal(field.state.value)}
-                    onChange={(e) => field.handleChange(parseCentsFromDecimal(e.target.value))}
+                    onChange={(e) =>
+                      field.handleChange(parseCentsFromDecimal(e.target.value))
+                    }
                     onBlur={field.handleBlur}
                     placeholder="0.0150"
                   />

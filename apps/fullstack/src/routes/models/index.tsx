@@ -68,13 +68,12 @@ function ModelsPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <CardTitle>{model.displayName}</CardTitle>
+                    <CardTitle>{model.modelIdentifier}</CardTitle>
                     <Badge variant={model.isActive ? "default" : "secondary"}>
                       {model.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </div>
                   <CardDescription className="space-y-1">
-                    <div>Model ID: {model.modelIdentifier}</div>
                     <div>
                       Input: {formatCost(model.inputCostPer1kTokensCents)}/1K
                       tokens

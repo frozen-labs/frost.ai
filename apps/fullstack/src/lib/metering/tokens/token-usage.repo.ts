@@ -15,7 +15,6 @@ export interface TokenUsageWithRelations extends TokenUsage {
   model: {
     id: string;
     modelIdentifier: string;
-    displayName: string;
   };
 }
 
@@ -89,7 +88,6 @@ export const tokenUsageRepo = {
         model: {
           id: validModels.id,
           modelIdentifier: validModels.modelIdentifier,
-          displayName: validModels.displayName,
         },
       })
       .from(tokenUsage)
@@ -144,7 +142,6 @@ export const tokenUsageRepo = {
     Array<{
       modelId: string;
       modelIdentifier: string;
-      displayName: string;
       totalInputTokens: number;
       totalOutputTokens: number;
       totalTokens: number;
@@ -169,7 +166,6 @@ export const tokenUsageRepo = {
       .select({
         modelId: tokenUsage.modelId,
         modelIdentifier: validModels.modelIdentifier,
-        displayName: validModels.displayName,
         totalInputTokens: sql<number>`COALESCE(SUM(${tokenUsage.inputTokens}), 0)`,
         totalOutputTokens: sql<number>`COALESCE(SUM(${tokenUsage.outputTokens}), 0)`,
         totalTokens: sql<number>`COALESCE(SUM(${tokenUsage.totalTokens}), 0)`,
@@ -181,8 +177,7 @@ export const tokenUsageRepo = {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .groupBy(
         tokenUsage.modelId,
-        validModels.modelIdentifier,
-        validModels.displayName
+        validModels.modelIdentifier
       );
 
     return await query;
