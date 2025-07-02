@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -9,8 +9,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { formatCurrency } from "~/lib/utils/currency";
 import { getAgentProfitabilitySummary } from "~/lib/analytics/agent-profitability.functions";
+import { formatCurrency } from "~/lib/utils/currency";
 
 interface AgentProfitabilityDashboardProps {
   agentId: string;
@@ -33,7 +33,9 @@ function KPIBox({ title, value, subtitle, isNegative }: KPIBoxProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${isNegative ? "text-red-600" : ""}`}>
+        <div
+          className={`text-2xl font-bold ${isNegative ? "text-red-600" : ""}`}
+        >
           {value}
         </div>
         {subtitle && (
@@ -58,8 +60,13 @@ export function AgentProfitabilityDashboard({
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log("Fetching data for agentId:", agentId, "customerId:", customerId);
-      
+      console.log(
+        "Fetching data for agentId:",
+        agentId,
+        "customerId:",
+        customerId
+      );
+
       const profitability = await getAgentProfitabilitySummary({
         data: {
           agentId,
@@ -70,7 +77,7 @@ export function AgentProfitabilityDashboard({
           },
         },
       });
-      
+
       console.log("Profitability data:", profitability);
       setData(profitability);
     } catch (error) {
@@ -187,7 +194,6 @@ export function AgentProfitabilityDashboard({
           isNegative={data.profitMargin < 0}
         />
       </div>
-
     </div>
   );
 }
