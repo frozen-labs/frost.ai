@@ -2,7 +2,7 @@ import { json } from "@tanstack/react-start";
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { agentRepository } from "~/lib/agents/agents.repo";
-import { customerRepository } from "~/lib/customers/customers.repo";
+import { customerRepository } from "~/lib/customers/customer.repo";
 import { signalLogRepository } from "~/lib/signals/signal-logs.repo";
 import { signalRepository } from "~/lib/signals/signals.repo";
 

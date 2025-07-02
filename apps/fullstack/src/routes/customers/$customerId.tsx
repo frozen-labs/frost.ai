@@ -13,7 +13,7 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { getCustomer, saveCustomer } from "~/lib/customers";
+import { getCustomer, saveCustomer } from "~/lib/customers/customer.functions";
 import { type Customer } from "~/lib/database";
 
 export const Route = createFileRoute("/customers/$customerId")({

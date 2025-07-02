@@ -58,6 +58,8 @@ export function AgentProfitabilityDashboard({
   const fetchData = async () => {
     setLoading(true);
     try {
+      console.log("Fetching data for agentId:", agentId, "customerId:", customerId);
+      
       const profitability = await getAgentProfitabilitySummary({
         agentId,
         customerId,
@@ -66,9 +68,12 @@ export function AgentProfitabilityDashboard({
           endDate: dateRange.to.toISOString(),
         },
       });
+      
+      console.log("Profitability data:", profitability);
       setData(profitability);
     } catch (error) {
       console.error("Error fetching profitability data:", error);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -76,7 +81,7 @@ export function AgentProfitabilityDashboard({
 
   useEffect(() => {
     fetchData();
-  }, [agentId, customerId, dateRange]);
+  }, [agentId, customerId, dateRange.from, dateRange.to]);
 
   if (loading) {
     return (

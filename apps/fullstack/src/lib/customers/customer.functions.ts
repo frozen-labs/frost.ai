@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { type NewCustomer } from "~/lib/database";
-import { customerRepository } from "./customers.repo";
+import { customerRepository } from "./customer.repo";
 
 export const getCustomer = createServerFn({ method: "GET" })
   .validator(z.object({ customerId: z.string() }))

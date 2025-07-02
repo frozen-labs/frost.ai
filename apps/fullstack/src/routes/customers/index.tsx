@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { Button } from '~/components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,55 +12,58 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '~/components/ui/alert-dialog'
-import { createServerFn } from '@tanstack/react-start'
-import { customerRepository } from '~/lib/customers/customers.repo'
-import { useState } from 'react'
-import { z } from 'zod'
+} from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { customerRepository } from "~/lib/customers/customer.repo";
 
 type CustomerWithDescription = {
-  id: string
-  name: string
-  description?: string
-  metadata?: Record<string, any>
-  createdAt: Date
-  updatedAt: Date
-}
+  id: string;
+  name: string;
+  description?: string;
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-const getCustomers = createServerFn({ method: 'GET' })
-  .handler(async () => {
-    const customers = await customerRepository.findAll()
-    return customers.map(customer => ({
-      ...customer,
-      description: (customer.metadata as any)?.description || ''
-    })) as CustomerWithDescription[]
-  })
+const getCustomers = createServerFn({ method: "GET" }).handler(async () => {
+  const customers = await customerRepository.findAll();
+  return customers.map((customer) => ({
+    ...customer,
+    description: (customer.metadata as any)?.description || "",
+  })) as CustomerWithDescription[];
+});
 
-const deleteCustomer = createServerFn({ method: 'POST' })
+const deleteCustomer = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
-    await customerRepository.delete(data.id)
-    return { success: true }
-  })
+    await customerRepository.delete(data.id);
+    return { success: true };
+  });
 
-export const Route = createFileRoute('/customers/')({
+export const Route = createFileRoute("/customers/")({
   loader: async () => {
-    const customers = await getCustomers()
-    return { customers }
+    const customers = await getCustomers();
+    return { customers };
   },
   component: CustomersPage,
-})
+});
 
 function CustomersPage() {
-  const { customers } = Route.useLoaderData()
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const navigate = Route.useNavigate()
+  const { customers } = Route.useLoaderData();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const navigate = Route.useNavigate();
 
   const handleDelete = async (id: string) => {
-    await deleteCustomer({ data: { id } })
-    setDeleteId(null)
-    navigate({ to: '.', replace: true })
-  }
+    await deleteCustomer({ data: { id } });
+    setDeleteId(null);
+    navigate({ to: ".", replace: true });
+  };
 
   return (
     <div className="p-8">
@@ -68,7 +72,7 @@ function CustomersPage() {
           <h1 className="text-3xl font-bold">Customers</h1>
           <p className="text-slate-600 mt-2">Manage your customer accounts</p>
         </div>
-        <Link to="/customers/$customerId" params={{ customerId: 'new' }}>
+        <Link to="/customers/$customerId" params={{ customerId: "new" }}>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             New Customer
@@ -85,11 +89,15 @@ function CustomersPage() {
                   <CardTitle>{customer.name}</CardTitle>
                   <CardDescription className="mt-2">
                     ID: {customer.id}
-                    {(customer as CustomerWithDescription).description && ` | ${(customer as CustomerWithDescription).description}`}
+                    {(customer as CustomerWithDescription).description &&
+                      ` | ${(customer as CustomerWithDescription).description}`}
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Link to="/customers/$customerId" params={{ customerId: customer.id }}>
+                  <Link
+                    to="/customers/$customerId"
+                    params={{ customerId: customer.id }}
+                  >
                     <Button variant="outline" size="sm">
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -113,17 +121,20 @@ function CustomersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Customer</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this customer? This action cannot be undone.
+              Are you sure you want to delete this customer? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && handleDelete(deleteId)}>
+            <AlertDialogAction
+              onClick={() => deleteId && handleDelete(deleteId)}
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

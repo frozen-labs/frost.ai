@@ -1,6 +1,6 @@
 import { json } from "@tanstack/react-start";
 import { createServerFileRoute } from "@tanstack/react-start/server";
-import { customerRepository } from "~/lib/customers";
+import { customerRepository } from "~/lib/customers/customer.repo";
 import { insertCustomerSchema } from "~/lib/database";
 
 export const ServerRoute = createServerFileRoute("/api/customers/").methods({
