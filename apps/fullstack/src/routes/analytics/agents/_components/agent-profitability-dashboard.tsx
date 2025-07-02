@@ -61,11 +61,13 @@ export function AgentProfitabilityDashboard({
       console.log("Fetching data for agentId:", agentId, "customerId:", customerId);
       
       const profitability = await getAgentProfitabilitySummary({
-        agentId,
-        customerId,
-        dateRange: {
-          startDate: dateRange.from.toISOString(),
-          endDate: dateRange.to.toISOString(),
+        data: {
+          agentId,
+          customerId,
+          dateRange: {
+            startDate: dateRange.from.toISOString(),
+            endDate: dateRange.to.toISOString(),
+          },
         },
       });
       
@@ -184,25 +186,6 @@ export function AgentProfitabilityDashboard({
         />
       </div>
 
-      {/* Daily Averages */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <KPIBox
-          title="Daily Revenue"
-          value={formatCurrency(data.dailyRevenue)}
-          subtitle="Average per day"
-        />
-        <KPIBox
-          title="Daily Costs"
-          value={formatCurrency(data.dailyCosts)}
-          subtitle="Average per day"
-        />
-        <KPIBox
-          title="Daily Profit"
-          value={formatCurrency(data.dailyProfit)}
-          subtitle="Average per day"
-          isNegative={data.dailyProfit < 0}
-        />
-      </div>
     </div>
   );
 }
