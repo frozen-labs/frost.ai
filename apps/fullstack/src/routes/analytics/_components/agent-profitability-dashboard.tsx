@@ -29,7 +29,12 @@ interface AgentProfitabilityDashboardProps {
   customerId?: string;
 }
 
-const KPIBox = ({ title, value, subtitle, isNegative }: {
+const KPIBox = ({
+  title,
+  value,
+  subtitle,
+  isNegative,
+}: {
   title: string;
   value: string | number;
   subtitle?: string;
@@ -118,14 +123,14 @@ export function AgentProfitabilityDashboard({
     const searchObj: Record<string, string> = {};
     if (value !== "all") searchObj.agentId = value;
     if (customerId) searchObj.customerId = customerId;
-    navigate({ to: "/analytics/agents", search: searchObj });
+    navigate({ to: "/analytics", search: searchObj });
   };
 
   const handleCustomerChange = (value: string) => {
     const searchObj: Record<string, string> = {};
     if (agentId) searchObj.agentId = agentId;
     if (value !== "all") searchObj.customerId = value;
-    navigate({ to: "/analytics/agents", search: searchObj });
+    navigate({ to: "/analytics", search: searchObj });
   };
 
   if (loading) {
@@ -150,7 +155,12 @@ export function AgentProfitabilityDashboard({
       <Card>
         <CardHeader>
           <CardTitle>
-            {!agentId ? "All Agents" : !customerId ? "Agent" : "Agent & Customer"} Profitability
+            {!agentId
+              ? "All Agents"
+              : !customerId
+              ? "Agent"
+              : "Agent & Customer"}{" "}
+            Profitability
           </CardTitle>
         </CardHeader>
         <CardContent>
