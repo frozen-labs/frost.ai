@@ -4,7 +4,6 @@ import {
   index,
   integer,
   jsonb,
-  numeric,
   pgTable,
   uuid as pgUuid,
   timestamp,
@@ -110,16 +109,16 @@ export const validModels = pgTable(
     id: pgUuid("id")
       .primaryKey()
       .$defaultFn(() => uuidV7()),
-    modelIdentifier: varchar("model_identifier", { length: 255 }).notNull().unique(),
+    modelIdentifier: varchar("model_identifier", { length: 255 })
+      .notNull()
+      .unique(),
     displayName: varchar("display_name", { length: 255 }).notNull(),
-    inputCostPer1kTokens: numeric("input_cost_per_1k_tokens", {
-      precision: 10,
-      scale: 6,
-    }).notNull(),
-    outputCostPer1kTokens: numeric("output_cost_per_1k_tokens", {
-      precision: 10,
-      scale: 6,
-    }).notNull(),
+    inputCostPer1kTokensCents: integer(
+      "input_cost_per_1k_tokens_cents"
+    ).notNull(),
+    outputCostPer1kTokensCents: integer(
+      "output_cost_per_1k_tokens_cents"
+    ).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -171,7 +170,6 @@ export const tokenUsage = pgTable(
   ]
 );
 
-
 // ============================================================================
 // RELATIONS
 // ============================================================================
@@ -219,7 +217,6 @@ export const tokenUsageRelations = relations(tokenUsage, ({ one }) => ({
     references: [validModels.id],
   }),
 }));
-
 
 // ============================================================================
 // ZOD SCHEMAS (for validation)

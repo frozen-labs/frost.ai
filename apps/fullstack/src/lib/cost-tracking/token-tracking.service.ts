@@ -21,12 +21,9 @@ export class TokenTrackingService {
       );
     }
 
-    // Calculate costs in cents
-    const inputCostPer1k = parseFloat(model.inputCostPer1kTokens);
-    const outputCostPer1k = parseFloat(model.outputCostPer1kTokens);
-
-    const inputCost = Math.round(((input.inputTokens / 1000) * inputCostPer1k) * 100);
-    const outputCost = Math.round(((input.outputTokens / 1000) * outputCostPer1k) * 100);
+    // Calculate costs in cents (model costs are already in cents per 1k tokens)
+    const inputCost = Math.round((input.inputTokens / 1000) * model.inputCostPer1kTokensCents);
+    const outputCost = Math.round((input.outputTokens / 1000) * model.outputCostPer1kTokensCents);
     const totalCost = inputCost + outputCost;
 
     // Create the usage record
@@ -59,11 +56,8 @@ export class TokenTrackingService {
         continue;
       }
 
-      const inputCostPer1k = parseFloat(model.inputCostPer1kTokens);
-      const outputCostPer1k = parseFloat(model.outputCostPer1kTokens);
-
-      const inputCost = Math.round(((input.inputTokens / 1000) * inputCostPer1k) * 100);
-      const outputCost = Math.round(((input.outputTokens / 1000) * outputCostPer1k) * 100);
+      const inputCost = Math.round((input.inputTokens / 1000) * model.inputCostPer1kTokensCents);
+      const outputCost = Math.round((input.outputTokens / 1000) * model.outputCostPer1kTokensCents);
       const totalCost = inputCost + outputCost;
 
       usages.push({
