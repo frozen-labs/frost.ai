@@ -23,12 +23,12 @@ export class TokenTrackingService {
       );
     }
 
-    // Calculate costs in cents (model costs are already in cents per 1k tokens)
+    // Calculate costs in cents (model costs are already in cents per 1M tokens)
     const inputCost = Math.round(
-      (input.inputTokens / 1000) * model.inputCostPer1kTokensCents
+      (input.inputTokens / 1000000) * model.inputCostPer1MTokensCents
     );
     const outputCost = Math.round(
-      (input.outputTokens / 1000) * model.outputCostPer1kTokensCents
+      (input.outputTokens / 1000000) * model.outputCostPer1MTokensCents
     );
     const totalCost = inputCost + outputCost;
 
@@ -65,10 +65,10 @@ export class TokenTrackingService {
       }
 
       const inputCost = Math.round(
-        (input.inputTokens / 1000) * model.inputCostPer1kTokensCents
+        (input.inputTokens / 1000000) * model.inputCostPer1MTokensCents
       );
       const outputCost = Math.round(
-        (input.outputTokens / 1000) * model.outputCostPer1kTokensCents
+        (input.outputTokens / 1000000) * model.outputCostPer1MTokensCents
       );
       const totalCost = inputCost + outputCost;
 

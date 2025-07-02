@@ -71,11 +71,11 @@ function ModelsPage() {
                   </div>
                   <CardDescription className="space-y-1">
                     <div>
-                      Input: {formatCost(model.inputCostPer1kTokensCents)}/1K
+                      Input: {formatCost(model.inputCostPer1MTokensCents)}/1M
                       tokens
                     </div>
                     <div>
-                      Output: {formatCost(model.outputCostPer1kTokensCents)}/1K
+                      Output: {formatCost(model.outputCostPer1MTokensCents)}/1M
                       tokens
                     </div>
                   </CardDescription>

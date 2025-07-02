@@ -111,11 +111,11 @@ export const validModels = pgTable(
     modelIdentifier: varchar("model_identifier", { length: 255 })
       .notNull()
       .unique(),
-    inputCostPer1kTokensCents: integer(
-      "input_cost_per_1k_tokens_cents"
+    inputCostPer1MTokensCents: integer(
+      "input_cost_per_1m_tokens_cents"
     ).notNull(),
-    outputCostPer1kTokensCents: integer(
-      "output_cost_per_1k_tokens_cents"
+    outputCostPer1MTokensCents: integer(
+      "output_cost_per_1m_tokens_cents"
     ).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()

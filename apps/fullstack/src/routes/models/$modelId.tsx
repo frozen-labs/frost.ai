@@ -29,8 +29,8 @@ export const Route = createFileRoute("/models/$modelId")({
 
 const formSchema = z.object({
   modelIdentifier: z.string().min(1, "Model identifier is required"),
-  inputCostPer1kTokens: z.number().min(0, "Input cost must be positive"),
-  outputCostPer1kTokens: z.number().min(0, "Output cost must be positive"),
+  inputCostPer1MTokens: z.number().min(0, "Input cost must be positive"),
+  outputCostPer1MTokens: z.number().min(0, "Output cost must be positive"),
 });
 
 function ModelFormPage() {
@@ -44,8 +44,8 @@ function ModelFormPage() {
   const form = useForm({
     defaultValues: {
       modelIdentifier: model?.modelIdentifier || "",
-      inputCostPer1kTokens: model ? model.inputCostPer1kTokensCents / 100 : 0,
-      outputCostPer1kTokens: model ? model.outputCostPer1kTokensCents / 100 : 0,
+      inputCostPer1MTokens: model ? model.inputCostPer1MTokensCents / 100 : 0,
+      outputCostPer1MTokens: model ? model.outputCostPer1MTokensCents / 100 : 0,
     },
     validators: {
       onSubmit: formSchema,
@@ -129,11 +129,11 @@ function ModelFormPage() {
               )}
             </form.Field>
 
-            <form.Field name="inputCostPer1kTokens">
+            <form.Field name="inputCostPer1MTokens">
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor={field.name}>
-                    Input Cost per 1K Tokens ($)
+                    Input Cost per 1M Tokens ($)
                   </Label>
                   <Input
                     id={field.name}
@@ -170,11 +170,11 @@ function ModelFormPage() {
               )}
             </form.Field>
 
-            <form.Field name="outputCostPer1kTokens">
+            <form.Field name="outputCostPer1MTokens">
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor={field.name}>
-                    Output Cost per 1K Tokens ($)
+                    Output Cost per 1M Tokens ($)
                   </Label>
                   <Input
                     id={field.name}
