@@ -77,13 +77,21 @@ export function AgentProfitabilityDashboard({
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Adjust start date to beginning of day (00:00:00.000)
+      const adjustedStartDate = new Date(dateRange.from);
+      adjustedStartDate.setHours(0, 0, 0, 0);
+      
+      // Adjust end date to end of day (23:59:59.999)
+      const adjustedEndDate = new Date(dateRange.to);
+      adjustedEndDate.setHours(23, 59, 59, 999);
+      
       const profitability = await getAgentProfitabilitySummary({
         data: {
           agentId,
           customerId,
           dateRange: {
-            startDate: dateRange.from.toISOString(),
-            endDate: dateRange.to.toISOString(),
+            startDate: adjustedStartDate.toISOString(),
+            endDate: adjustedEndDate.toISOString(),
           },
         },
       });
