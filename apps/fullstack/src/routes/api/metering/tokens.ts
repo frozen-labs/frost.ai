@@ -1,7 +1,7 @@
+import { json } from "@tanstack/react-start";
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { tokenTrackingService } from "../../../lib/cost-tracking/token-tracking.service";
-
+import { tokenTrackingService } from "~/lib/cost-tracking/token-tracking.service";
 const trackingSchema = z.object({
   customerId: z.string().uuid(),
   agentId: z.string().uuid(),
@@ -15,7 +15,7 @@ const trackingSchema = z.object({
 });
 
 export const ServerRoute = createServerFileRoute(
-  "/api/token-usage/track"
+  "/api/metering/tokens"
 ).methods({
   POST: async ({ request }) => {
     try {
@@ -24,35 +24,20 @@ export const ServerRoute = createServerFileRoute(
 
       const usageId = await tokenTrackingService.trackUsage(data);
 
-      return new Response(JSON.stringify({ id: usageId }), {
-        status: 201,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      return json({ id: usageId }, { status: 201 });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return new Response(
-          JSON.stringify({
+        return json(
+          {
             error: "Invalid request data",
             details: error.errors,
-          }),
-          {
-            status: 400,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+          },
+          { status: 400 }
         );
       }
 
       console.error("Error tracking token usage:", error);
-      return new Response(JSON.stringify({ error: "Internal server error" }), {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      return json({ error: "Internal server error" }, { status: 500 });
     }
   },
 });

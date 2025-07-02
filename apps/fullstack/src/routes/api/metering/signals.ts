@@ -13,7 +13,9 @@ const trackSignalSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-export const ServerRoute = createServerFileRoute("/api/signals/track").methods({
+export const ServerRoute = createServerFileRoute(
+  "/api/metering/signals"
+).methods({
   POST: async ({ request }) => {
     try {
       const body = await request.json();
