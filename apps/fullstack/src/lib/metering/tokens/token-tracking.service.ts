@@ -44,42 +44,6 @@ export class TokenTrackingService {
     const created = await tokenUsageRepo.create(usage);
     return created.id;
   }
-
-  async trackBatchUsage(inputs: TokenTrackingInput[]): Promise<string[]> {
-    const usages: NewTokenUsage[] = [];
-
-    for (const input of inputs) {
-      const model = await validModelsRepo.findBySlug(input.modelId);
-
-      if (!model) {
-        console.warn(`Model with slug ${input.modelId} not found, skipping`);
-        continue;
-      }
-
-      const inputCost = Math.round(
-        (input.inputTokens / 1000000) * model.inputCostPer1MTokensCents
-      );
-      const outputCost = Math.round(
-        (input.outputTokens / 1000000) * model.outputCostPer1MTokensCents
-      );
-      const totalCost = inputCost + outputCost;
-
-      usages.push({
-        customerId: input.customerId,
-        agentId: input.agentId,
-        modelId: model.id,
-        inputTokens: input.inputTokens,
-        outputTokens: input.outputTokens,
-        totalTokens: input.inputTokens + input.outputTokens,
-        inputCost: inputCost,
-        outputCost: outputCost,
-        totalCost: totalCost,
-      });
-    }
-
-    const created = await tokenUsageRepo.createBatch(usages);
-    return created.map((u) => u.id);
-  }
 }
 
 export const tokenTrackingService = new TokenTrackingService();
