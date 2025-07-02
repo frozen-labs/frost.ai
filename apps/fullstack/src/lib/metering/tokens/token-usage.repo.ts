@@ -1,13 +1,13 @@
 import { and, between, desc, eq, gte, sql } from "drizzle-orm";
-import { db } from "../database/index";
+import { db } from "../../database/index";
 import {
   agents,
   customers,
-  validModels,
   tokenUsage,
+  validModels,
   type NewTokenUsage,
   type TokenUsage,
-} from "../database/schema";
+} from "../../database/schema";
 
 export interface TokenUsageWithRelations extends TokenUsage {
   customer: { id: string; name: string };
@@ -179,7 +179,11 @@ export const tokenUsageRepo = {
       .from(tokenUsage)
       .innerJoin(validModels, eq(tokenUsage.modelId, validModels.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .groupBy(tokenUsage.modelId, validModels.modelIdentifier, validModels.displayName);
+      .groupBy(
+        tokenUsage.modelId,
+        validModels.modelIdentifier,
+        validModels.displayName
+      );
 
     return await query;
   },
@@ -190,5 +194,4 @@ export const tokenUsageRepo = {
       .where(eq(tokenUsage.customerId, customerId));
     return result.rowCount || 0;
   },
-
 };

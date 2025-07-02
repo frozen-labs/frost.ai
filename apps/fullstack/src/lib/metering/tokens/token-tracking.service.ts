@@ -1,5 +1,5 @@
-import type { NewTokenUsage } from "../database/schema";
-import { validModelsRepo } from "./valid-models.repo";
+import type { NewTokenUsage } from "../../database/schema";
+import { validModelsRepo } from "../valid-models.repo";
 import { tokenUsageRepo } from "./token-usage.repo";
 
 export interface TokenTrackingInput {
@@ -13,7 +13,9 @@ export interface TokenTrackingInput {
 export class TokenTrackingService {
   async trackUsage(input: TokenTrackingInput): Promise<string> {
     // Find the model by identifier
-    const model = await validModelsRepo.findByModelIdentifier(input.modelIdentifier);
+    const model = await validModelsRepo.findByModelIdentifier(
+      input.modelIdentifier
+    );
 
     if (!model) {
       throw new Error(
@@ -22,8 +24,12 @@ export class TokenTrackingService {
     }
 
     // Calculate costs in cents (model costs are already in cents per 1k tokens)
-    const inputCost = Math.round((input.inputTokens / 1000) * model.inputCostPer1kTokensCents);
-    const outputCost = Math.round((input.outputTokens / 1000) * model.outputCostPer1kTokensCents);
+    const inputCost = Math.round(
+      (input.inputTokens / 1000) * model.inputCostPer1kTokensCents
+    );
+    const outputCost = Math.round(
+      (input.outputTokens / 1000) * model.outputCostPer1kTokensCents
+    );
     const totalCost = inputCost + outputCost;
 
     // Create the usage record
@@ -47,7 +53,9 @@ export class TokenTrackingService {
     const usages: NewTokenUsage[] = [];
 
     for (const input of inputs) {
-      const model = await validModelsRepo.findByModelIdentifier(input.modelIdentifier);
+      const model = await validModelsRepo.findByModelIdentifier(
+        input.modelIdentifier
+      );
 
       if (!model) {
         console.warn(
@@ -56,8 +64,12 @@ export class TokenTrackingService {
         continue;
       }
 
-      const inputCost = Math.round((input.inputTokens / 1000) * model.inputCostPer1kTokensCents);
-      const outputCost = Math.round((input.outputTokens / 1000) * model.outputCostPer1kTokensCents);
+      const inputCost = Math.round(
+        (input.inputTokens / 1000) * model.inputCostPer1kTokensCents
+      );
+      const outputCost = Math.round(
+        (input.outputTokens / 1000) * model.outputCostPer1kTokensCents
+      );
       const totalCost = inputCost + outputCost;
 
       usages.push({
@@ -76,7 +88,6 @@ export class TokenTrackingService {
     const created = await tokenUsageRepo.createBatch(usages);
     return created.map((u) => u.id);
   }
-
 }
 
 export const tokenTrackingService = new TokenTrackingService();
