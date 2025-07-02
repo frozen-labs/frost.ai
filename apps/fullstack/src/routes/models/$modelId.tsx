@@ -31,7 +31,6 @@ const formSchema = z.object({
   modelIdentifier: z.string().min(1, "Model identifier is required"),
   inputCostPer1kTokens: z.number().min(0, "Input cost must be positive"),
   outputCostPer1kTokens: z.number().min(0, "Output cost must be positive"),
-  isActive: z.boolean(),
 });
 
 function ModelFormPage() {
@@ -47,7 +46,6 @@ function ModelFormPage() {
       modelIdentifier: model?.modelIdentifier || "",
       inputCostPer1kTokens: model ? model.inputCostPer1kTokensCents / 100 : 0,
       outputCostPer1kTokens: model ? model.outputCostPer1kTokensCents / 100 : 0,
-      isActive: model?.isActive ?? true,
     },
     validators: {
       onSubmit: formSchema,
@@ -144,13 +142,21 @@ function ModelFormPage() {
                     step="0.01"
                     min="0"
                     value={field.state.value}
-                    onChange={(e) =>
-                      field.handleChange(parseFloat(e.target.value) || 0)
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.handleChange(
+                        value === "" ? 0 : parseFloat(value) || 0
+                      );
+                    }}
                     onBlur={(e) => {
-                      const rounded =
-                        Math.round(parseFloat(e.target.value) * 100) / 100;
-                      field.handleChange(rounded || 0);
+                      const value = e.target.value;
+                      if (value === "") {
+                        field.handleChange(0);
+                      } else {
+                        const rounded =
+                          Math.round(parseFloat(value) * 100) / 100;
+                        field.handleChange(rounded || 0);
+                      }
                       field.handleBlur();
                     }}
                     placeholder="0.03"
@@ -177,13 +183,21 @@ function ModelFormPage() {
                     step="0.01"
                     min="0"
                     value={field.state.value}
-                    onChange={(e) =>
-                      field.handleChange(parseFloat(e.target.value) || 0)
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.handleChange(
+                        value === "" ? 0 : parseFloat(value) || 0
+                      );
+                    }}
                     onBlur={(e) => {
-                      const rounded =
-                        Math.round(parseFloat(e.target.value) * 100) / 100;
-                      field.handleChange(rounded || 0);
+                      const value = e.target.value;
+                      if (value === "") {
+                        field.handleChange(0);
+                      } else {
+                        const rounded =
+                          Math.round(parseFloat(value) * 100) / 100;
+                        field.handleChange(rounded || 0);
+                      }
                       field.handleBlur();
                     }}
                     placeholder="0.15"
@@ -197,18 +211,6 @@ function ModelFormPage() {
               )}
             </form.Field>
 
-            <form.Field name="isActive">
-              {(field) => (
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id={field.name}
-                    checked={field.state.value}
-                    onCheckedChange={(checked) => field.handleChange(checked)}
-                  />
-                  <Label htmlFor={field.name}>Active</Label>
-                </div>
-              )}
-            </form.Field>
 
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting]}

@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
 import {
-  boolean,
   index,
   integer,
   jsonb,
@@ -118,7 +117,6 @@ export const validModels = pgTable(
     outputCostPer1kTokensCents: integer(
       "output_cost_per_1k_tokens_cents"
     ).notNull(),
-    isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -128,7 +126,6 @@ export const validModels = pgTable(
   },
   (table) => [
     uniqueIndex("valid_models_identifier_unique").on(table.modelIdentifier),
-    index("valid_models_is_active_idx").on(table.isActive),
   ]
 );
 

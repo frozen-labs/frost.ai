@@ -10,8 +10,7 @@ export const validModelsRepo = {
   async findActive(): Promise<ValidModel[]> {
     return await db
       .select()
-      .from(validModels)
-      .where(eq(validModels.isActive, true));
+      .from(validModels);
   },
 
   async findById(id: string): Promise<ValidModel | undefined> {

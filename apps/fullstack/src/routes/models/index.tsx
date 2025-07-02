@@ -11,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -69,9 +68,6 @@ function ModelsPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <CardTitle>{model.modelIdentifier}</CardTitle>
-                    <Badge variant={model.isActive ? "default" : "secondary"}>
-                      {model.isActive ? "Active" : "Inactive"}
-                    </Badge>
                   </div>
                   <CardDescription className="space-y-1">
                     <div>
