@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { type NewCustomer } from "~/lib/database";
-import { customerRepository } from "./customers.repo";
+import { customerRepository } from "./customer.repo";
 
 export const getCustomer = createServerFn({ method: "GET" })
   .validator(z.object({ customerId: z.string() }))
@@ -19,6 +19,7 @@ export const getCustomer = createServerFn({ method: "GET" })
 const saveCustomerSchema = z.object({
   customerId: z.string(),
   name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
 });
 
 export const saveCustomer = createServerFn({ method: "POST" })
@@ -26,13 +27,11 @@ export const saveCustomer = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const customerData: NewCustomer = {
       name: data.name,
+      slug: data.slug,
     };
 
-    let customerId = data.customerId;
-
     if (data.customerId === "new") {
-      const newCustomer = await customerRepository.create(customerData);
-      customerId = newCustomer.id;
+      await customerRepository.create(customerData);
     } else {
       await customerRepository.update(data.customerId, customerData);
     }

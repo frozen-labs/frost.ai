@@ -1,31 +1,40 @@
-import { and, eq, gte, lte, sql, desc } from "drizzle-orm";
-import { 
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import {
   agents,
-  agentSignals, 
   agentSignalLogs,
+  agentSignals,
   customers,
-  db
+  db,
 } from "~/lib/database";
 
 export const analyticsRepository = {
   // Get analytics data for a specific customer within date range
-  async getCustomerAnalytics(customerId: string, startDate: Date, endDate: Date): Promise<Array<{
-    signalId: string;
-    signalName: string;
-    pricePerCallCents: number;
-    callCount: number;
-    totalCost: number;
-  }>> {
+  async getCustomerAnalytics(
+    customerId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<
+    Array<{
+      signalId: string;
+      signalName: string;
+      pricePerCallCents: number;
+      callCount: number;
+      totalCost: number;
+    }>
+  > {
     const result = await db
       .select({
-        signalId: agentSignals.friendlySignalIdentifier,
+        signalId: agentSignals.slug,
         signalName: agentSignals.name,
         pricePerCallCents: agentSignals.pricePerCallCents,
         callCount: sql<number>`COUNT(${agentSignalLogs.id})`,
         totalCost: sql<number>`COUNT(${agentSignalLogs.id}) * ${agentSignals.pricePerCallCents}`,
       })
       .from(agentSignalLogs)
-      .innerJoin(agentSignals, eq(agentSignals.id, agentSignalLogs.agentSignalId))
+      .innerJoin(
+        agentSignals,
+        eq(agentSignals.id, agentSignalLogs.agentSignalId)
+      )
       .where(
         and(
           eq(agentSignalLogs.customerId, customerId),
@@ -33,10 +42,15 @@ export const analyticsRepository = {
           lte(agentSignalLogs.createdAt, endDate)
         )
       )
-      .groupBy(agentSignals.id, agentSignals.friendlySignalIdentifier, agentSignals.name, agentSignals.pricePerCallCents)
+      .groupBy(
+        agentSignals.id,
+        agentSignals.slug,
+        agentSignals.name,
+        agentSignals.pricePerCallCents
+      )
       .orderBy(desc(sql<number>`COUNT(${agentSignalLogs.id})`));
-    
-    return result.map(row => ({
+
+    return result.map((row) => ({
       signalId: row.signalId,
       signalName: row.signalName,
       pricePerCallCents: row.pricePerCallCents,
@@ -46,7 +60,11 @@ export const analyticsRepository = {
   },
 
   // Get payment summary for a customer within date range
-  async getCustomerPaymentSummary(customerId: string, startDate: Date, endDate: Date): Promise<{
+  async getCustomerPaymentSummary(
+    customerId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
     totalCalls: number;
     totalAmount: number;
     uniqueSignals: number;
@@ -58,7 +76,10 @@ export const analyticsRepository = {
         uniqueSignals: sql<number>`COUNT(DISTINCT ${agentSignals.id})`,
       })
       .from(agentSignalLogs)
-      .innerJoin(agentSignals, eq(agentSignals.id, agentSignalLogs.agentSignalId))
+      .innerJoin(
+        agentSignals,
+        eq(agentSignals.id, agentSignalLogs.agentSignalId)
+      )
       .where(
         and(
           eq(agentSignalLogs.customerId, customerId),
@@ -66,7 +87,7 @@ export const analyticsRepository = {
           lte(agentSignalLogs.createdAt, endDate)
         )
       );
-    
+
     const row = result[0];
     return {
       totalCalls: Number(row?.totalCalls || 0),
@@ -77,7 +98,7 @@ export const analyticsRepository = {
 
   // Get recent signal calls for a customer with pagination and search
   async getRecentSignalCalls(
-    customerId: string, 
+    customerId: string,
     options: {
       limit?: number;
       offset?: number;
@@ -98,51 +119,57 @@ export const analyticsRepository = {
     total: number;
   }> {
     const { limit = 10, offset = 0, search, startDate, endDate } = options;
-    
+
     let whereConditions = [eq(agentSignalLogs.customerId, customerId)];
-    
+
     if (search && search.trim()) {
       const searchPattern = `%${search.trim().toLowerCase()}%`;
       whereConditions.push(
         sql`(LOWER(${agentSignals.name}) LIKE ${searchPattern} OR LOWER(${agents.name}) LIKE ${searchPattern})`
       );
     }
-    
+
     if (startDate) {
       whereConditions.push(gte(agentSignalLogs.createdAt, startDate));
     }
-    
+
     if (endDate) {
       whereConditions.push(lte(agentSignalLogs.createdAt, endDate));
     }
-    
+
     const [callsResult, countResult] = await Promise.all([
       db
         .select({
           id: agentSignalLogs.id,
           signalName: agentSignals.name,
-          signalId: agentSignals.friendlySignalIdentifier,
+          signalId: agentSignals.slug,
           agentName: agents.name,
           pricePerCallCents: agentSignals.pricePerCallCents,
           timestamp: agentSignalLogs.createdAt,
           metadata: agentSignalLogs.metadata,
         })
         .from(agentSignalLogs)
-        .innerJoin(agentSignals, eq(agentSignals.id, agentSignalLogs.agentSignalId))
+        .innerJoin(
+          agentSignals,
+          eq(agentSignals.id, agentSignalLogs.agentSignalId)
+        )
         .innerJoin(agents, eq(agents.id, agentSignals.agentId))
         .where(and(...whereConditions))
         .orderBy(desc(agentSignalLogs.createdAt))
         .limit(limit)
         .offset(offset),
-      
+
       db
         .select({ count: sql<number>`COUNT(*)` })
         .from(agentSignalLogs)
-        .innerJoin(agentSignals, eq(agentSignals.id, agentSignalLogs.agentSignalId))
+        .innerJoin(
+          agentSignals,
+          eq(agentSignals.id, agentSignalLogs.agentSignalId)
+        )
         .innerJoin(agents, eq(agents.id, agentSignals.agentId))
-        .where(and(...whereConditions))
+        .where(and(...whereConditions)),
     ]);
-    
+
     return {
       calls: callsResult,
       total: Number(countResult[0]?.count || 0),
@@ -150,7 +177,11 @@ export const analyticsRepository = {
   },
 
   // Get agent summary for a customer
-  async getCustomerAgentSummary(customerId: string, startDate: Date, endDate: Date): Promise<{
+  async getCustomerAgentSummary(
+    customerId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
     agentCount: number;
     agents: Array<{
       agentId: string;
@@ -165,7 +196,10 @@ export const analyticsRepository = {
         signalCount: sql<number>`COUNT(DISTINCT ${agentSignals.id})`,
       })
       .from(agentSignalLogs)
-      .innerJoin(agentSignals, eq(agentSignals.id, agentSignalLogs.agentSignalId))
+      .innerJoin(
+        agentSignals,
+        eq(agentSignals.id, agentSignalLogs.agentSignalId)
+      )
       .innerJoin(agents, eq(agents.id, agentSignals.agentId))
       .where(
         and(
@@ -176,10 +210,10 @@ export const analyticsRepository = {
       )
       .groupBy(agents.id, agents.name)
       .orderBy(desc(sql<number>`COUNT(DISTINCT ${agentSignals.id})`));
-    
+
     return {
       agentCount: result.length,
-      agents: result.map(row => ({
+      agents: result.map((row) => ({
         agentId: row.agentId,
         agentName: row.agentName,
         signalCount: Number(row.signalCount),
@@ -188,10 +222,12 @@ export const analyticsRepository = {
   },
 
   // Get all customers for the dropdown
-  async getAllCustomers(): Promise<Array<{
-    id: string;
-    name: string;
-  }>> {
+  async getAllCustomers(): Promise<
+    Array<{
+      id: string;
+      name: string;
+    }>
+  > {
     const result = await db
       .select({
         id: customers.id,
@@ -199,7 +235,7 @@ export const analyticsRepository = {
       })
       .from(customers)
       .orderBy(customers.name);
-    
+
     return result;
   },
 };

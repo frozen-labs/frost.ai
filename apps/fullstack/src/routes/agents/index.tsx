@@ -78,7 +78,7 @@ function AgentsPage() {
                   <div>
                     <CardTitle>{agent.name}</CardTitle>
                     <CardDescription className="mt-2">
-                      ID: {agent.friendlyAgentIdentifier}
+                      Slug: {agent.slug}
                       {metadata?.isRestricted && (
                         <>
                           {" | "}

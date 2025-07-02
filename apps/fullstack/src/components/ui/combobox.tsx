@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { cn } from "~/components/utils";
+import { cn } from "~/lib/utils/styles";
 
 interface ComboboxProps {
   options: { value: string; label: string }[];

@@ -1,0 +1,49 @@
+import type { NewTokenUsage } from "../../database/schema";
+import { validModelsRepo } from "../valid-models.repo";
+import { tokenUsageRepo } from "./token-usage.repo";
+
+export interface TokenTrackingInput {
+  customerId: string;
+  agentId: string;
+  modelId: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+export class TokenTrackingService {
+  async trackUsage(input: TokenTrackingInput): Promise<string> {
+    // Find the model by slug
+    const model = await validModelsRepo.findBySlug(input.modelId);
+
+    if (!model) {
+      throw new Error(`Model with slug ${input.modelId} not found`);
+    }
+
+    // Calculate costs in cents (model costs are already in cents per 1M tokens)
+    const inputCost = Math.round(
+      (input.inputTokens / 1000000) * model.inputCostPer1MTokensCents
+    );
+    const outputCost = Math.round(
+      (input.outputTokens / 1000000) * model.outputCostPer1MTokensCents
+    );
+    const totalCost = inputCost + outputCost;
+
+    // Create the usage record
+    const usage: NewTokenUsage = {
+      customerId: input.customerId,
+      agentId: input.agentId,
+      modelId: model.id,
+      inputTokens: input.inputTokens,
+      outputTokens: input.outputTokens,
+      totalTokens: input.inputTokens + input.outputTokens,
+      inputCost: inputCost,
+      outputCost: outputCost,
+      totalCost: totalCost,
+    };
+
+    const created = await tokenUsageRepo.create(usage);
+    return created.id;
+  }
+}
+
+export const tokenTrackingService = new TokenTrackingService();

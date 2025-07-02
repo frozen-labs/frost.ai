@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,70 +18,70 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { customerRepository } from "~/lib/customers/customer.repo";
+import { deleteModel, getModels } from "~/lib/metering/model.functions";
 
-const getCustomers = createServerFn({ method: "GET" }).handler(async () => {
-  const customers = await customerRepository.findAll();
-  return customers;
-});
-
-const deleteCustomer = createServerFn({ method: "POST" })
-  .validator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => {
-    await customerRepository.delete(data.id);
-    return { success: true };
-  });
-
-export const Route = createFileRoute("/customers/")({
+export const Route = createFileRoute("/models/")({
   loader: async () => {
-    const customers = await getCustomers();
-    return { customers };
+    const models = await getModels();
+    return { models };
   },
-  component: CustomersPage,
+  component: ModelsPage,
 });
 
-function CustomersPage() {
-  const { customers } = Route.useLoaderData();
+function ModelsPage() {
+  const { models } = Route.useLoaderData();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = Route.useNavigate();
 
   const handleDelete = async (id: string) => {
-    await deleteCustomer({ data: { id } });
+    await deleteModel({ data: { id } });
     setDeleteId(null);
     navigate({ to: ".", replace: true });
+  };
+
+  const formatCost = (cents: number) => {
+    return `$${(cents / 100).toFixed(2)}`;
   };
 
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Customers</h1>
-          <p className="text-slate-600 mt-2">Manage your customer accounts</p>
+          <h1 className="text-3xl font-bold">Models</h1>
+          <p className="text-slate-600 mt-2">
+            Manage AI models and their pricing
+          </p>
         </div>
-        <Link to="/customers/$customerId" params={{ customerId: "new" }}>
+        <Link to="/models/$modelId" params={{ modelId: "new" }}>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            New Customer
+            New Model
           </Button>
         </Link>
       </div>
 
       <div className="grid gap-4">
-        {customers.map((customer) => (
-          <Card key={customer.id}>
+        {models.map((model) => (
+          <Card key={model.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle>{customer.name}</CardTitle>
-                  <CardDescription className="mt-2">
-                    Slug: {customer.slug}
+                  <div className="flex items-center gap-2 mb-2">
+                    <CardTitle>{model.slug}</CardTitle>
+                  </div>
+                  <CardDescription className="space-y-1">
+                    <div>
+                      Input: {formatCost(model.inputCostPer1MTokensCents)}/1M
+                      tokens
+                    </div>
+                    <div>
+                      Output: {formatCost(model.outputCostPer1MTokensCents)}/1M
+                      tokens
+                    </div>
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Link
-                    to="/customers/$customerId"
-                    params={{ customerId: customer.id }}
-                  >
+                  <Link to="/models/$modelId" params={{ modelId: model.id }}>
                     <Button variant="outline" size="sm">
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -91,7 +89,7 @@ function CustomersPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setDeleteId(customer.id)}
+                    onClick={() => setDeleteId(model.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -105,10 +103,10 @@ function CustomersPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Customer</AlertDialogTitle>
+            <AlertDialogTitle>Delete Model</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this customer? This action cannot
-              be undone.
+              Are you sure you want to delete this model? This action cannot be
+              undone and may affect existing token usage records.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

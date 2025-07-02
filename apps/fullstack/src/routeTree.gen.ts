@@ -13,14 +13,17 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AgentsRouteRouteImport } from './routes/agents/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ModelsIndexRouteImport } from './routes/models/index'
 import { Route as CustomersIndexRouteImport } from './routes/customers/index'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
 import { Route as AgentsIndexRouteImport } from './routes/agents/index'
+import { Route as ModelsModelIdRouteImport } from './routes/models/$modelId'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers/$customerId'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { ServerRoute as ApiHealthIndexServerRouteImport } from './routes/api/health/index'
 import { ServerRoute as ApiCustomersIndexServerRouteImport } from './routes/api/customers/index'
-import { ServerRoute as ApiSignalsTrackServerRouteImport } from './routes/api/signals/track'
+import { ServerRoute as ApiMeteringTokensServerRouteImport } from './routes/api/metering/tokens'
+import { ServerRoute as ApiMeteringSignalsServerRouteImport } from './routes/api/metering/signals'
 
 const rootServerRouteImport = createServerRootRoute()
 
@@ -32,6 +35,11 @@ const AgentsRouteRoute = AgentsRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModelsIndexRoute = ModelsIndexRouteImport.update({
+  id: '/models/',
+  path: '/models/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomersIndexRoute = CustomersIndexRouteImport.update({
@@ -48,6 +56,11 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AgentsRouteRoute,
+} as any)
+const ModelsModelIdRoute = ModelsModelIdRouteImport.update({
+  id: '/models/$modelId',
+  path: '/models/$modelId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CustomersCustomerIdRoute = CustomersCustomerIdRouteImport.update({
   id: '/customers/$customerId',
@@ -69,28 +82,38 @@ const ApiCustomersIndexServerRoute = ApiCustomersIndexServerRouteImport.update({
   path: '/api/customers/',
   getParentRoute: () => rootServerRouteImport,
 } as any)
-const ApiSignalsTrackServerRoute = ApiSignalsTrackServerRouteImport.update({
-  id: '/api/signals/track',
-  path: '/api/signals/track',
+const ApiMeteringTokensServerRoute = ApiMeteringTokensServerRouteImport.update({
+  id: '/api/metering/tokens',
+  path: '/api/metering/tokens',
   getParentRoute: () => rootServerRouteImport,
 } as any)
+const ApiMeteringSignalsServerRoute =
+  ApiMeteringSignalsServerRouteImport.update({
+    id: '/api/metering/signals',
+    path: '/api/metering/signals',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRouteRouteWithChildren
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/models/$modelId': typeof ModelsModelIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/models': typeof ModelsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/models/$modelId': typeof ModelsModelIdRoute
   '/agents': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/models': typeof ModelsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,9 +121,11 @@ export interface FileRoutesById {
   '/agents': typeof AgentsRouteRouteWithChildren
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/models/$modelId': typeof ModelsModelIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/analytics/': typeof AnalyticsIndexRoute
   '/customers/': typeof CustomersIndexRoute
+  '/models/': typeof ModelsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -109,61 +134,86 @@ export interface FileRouteTypes {
     | '/agents'
     | '/agents/$agentId'
     | '/customers/$customerId'
+    | '/models/$modelId'
     | '/agents/'
     | '/analytics'
     | '/customers'
+    | '/models'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/agents/$agentId'
     | '/customers/$customerId'
+    | '/models/$modelId'
     | '/agents'
     | '/analytics'
     | '/customers'
+    | '/models'
   id:
     | '__root__'
     | '/'
     | '/agents'
     | '/agents/$agentId'
     | '/customers/$customerId'
+    | '/models/$modelId'
     | '/agents/'
     | '/analytics/'
     | '/customers/'
+    | '/models/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRouteRoute: typeof AgentsRouteRouteWithChildren
   CustomersCustomerIdRoute: typeof CustomersCustomerIdRoute
+  ModelsModelIdRoute: typeof ModelsModelIdRoute
   AnalyticsIndexRoute: typeof AnalyticsIndexRoute
   CustomersIndexRoute: typeof CustomersIndexRoute
+  ModelsIndexRoute: typeof ModelsIndexRoute
 }
 export interface FileServerRoutesByFullPath {
-  '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
+  '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
   '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRoutesByTo {
-  '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
+  '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
   '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
-  '/api/signals/track': typeof ApiSignalsTrackServerRoute
+  '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
+  '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
   '/api/customers/': typeof ApiCustomersIndexServerRoute
   '/api/health/': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/signals/track' | '/api/customers' | '/api/health'
+  fullPaths:
+    | '/api/metering/signals'
+    | '/api/metering/tokens'
+    | '/api/customers'
+    | '/api/health'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/signals/track' | '/api/customers' | '/api/health'
-  id: '__root__' | '/api/signals/track' | '/api/customers/' | '/api/health/'
+  to:
+    | '/api/metering/signals'
+    | '/api/metering/tokens'
+    | '/api/customers'
+    | '/api/health'
+  id:
+    | '__root__'
+    | '/api/metering/signals'
+    | '/api/metering/tokens'
+    | '/api/customers/'
+    | '/api/health/'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
-  ApiSignalsTrackServerRoute: typeof ApiSignalsTrackServerRoute
+  ApiMeteringSignalsServerRoute: typeof ApiMeteringSignalsServerRoute
+  ApiMeteringTokensServerRoute: typeof ApiMeteringTokensServerRoute
   ApiCustomersIndexServerRoute: typeof ApiCustomersIndexServerRoute
   ApiHealthIndexServerRoute: typeof ApiHealthIndexServerRoute
 }
@@ -182,6 +232,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/models/': {
+      id: '/models/'
+      path: '/models'
+      fullPath: '/models'
+      preLoaderRoute: typeof ModelsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customers/': {
@@ -204,6 +261,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/agents/'
       preLoaderRoute: typeof AgentsIndexRouteImport
       parentRoute: typeof AgentsRouteRoute
+    }
+    '/models/$modelId': {
+      id: '/models/$modelId'
+      path: '/models/$modelId'
+      fullPath: '/models/$modelId'
+      preLoaderRoute: typeof ModelsModelIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/customers/$customerId': {
       id: '/customers/$customerId'
@@ -237,11 +301,18 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiCustomersIndexServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
-    '/api/signals/track': {
-      id: '/api/signals/track'
-      path: '/api/signals/track'
-      fullPath: '/api/signals/track'
-      preLoaderRoute: typeof ApiSignalsTrackServerRouteImport
+    '/api/metering/tokens': {
+      id: '/api/metering/tokens'
+      path: '/api/metering/tokens'
+      fullPath: '/api/metering/tokens'
+      preLoaderRoute: typeof ApiMeteringTokensServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/metering/signals': {
+      id: '/api/metering/signals'
+      path: '/api/metering/signals'
+      fullPath: '/api/metering/signals'
+      preLoaderRoute: typeof ApiMeteringSignalsServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
   }
@@ -265,14 +336,17 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRouteRoute: AgentsRouteRouteWithChildren,
   CustomersCustomerIdRoute: CustomersCustomerIdRoute,
+  ModelsModelIdRoute: ModelsModelIdRoute,
   AnalyticsIndexRoute: AnalyticsIndexRoute,
   CustomersIndexRoute: CustomersIndexRoute,
+  ModelsIndexRoute: ModelsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
-  ApiSignalsTrackServerRoute: ApiSignalsTrackServerRoute,
+  ApiMeteringSignalsServerRoute: ApiMeteringSignalsServerRoute,
+  ApiMeteringTokensServerRoute: ApiMeteringTokensServerRoute,
   ApiCustomersIndexServerRoute: ApiCustomersIndexServerRoute,
   ApiHealthIndexServerRoute: ApiHealthIndexServerRoute,
 }

@@ -17,6 +17,7 @@ export const customers = pgTable(
     id: pgUuid("id")
       .primaryKey()
       .$defaultFn(() => uuidV7()),
+    slug: varchar("slug", { length: 255 }).notNull().unique(),
     name: varchar("name", { length: 255 }).notNull(),
     metadata: jsonb("metadata").$type<Record<string, any>>(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -35,7 +36,7 @@ export const agents = pgTable(
     id: pgUuid("id")
       .primaryKey()
       .$defaultFn(() => uuidV7()),
-    friendlyAgentIdentifier: varchar("friendly_agent_identifier", {
+    slug: varchar("slug", {
       length: 255,
     }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
@@ -49,9 +50,7 @@ export const agents = pgTable(
   },
   (table) => [
     index("agents_name_idx").on(table.name),
-    index("agents_friendly_agent_identifier_idx").on(
-      table.friendlyAgentIdentifier
-    ),
+    index("agents_slug_idx").on(table.slug),
   ]
 );
 
@@ -64,7 +63,7 @@ export const agentSignals = pgTable(
     agentId: pgUuid("agent_id")
       .notNull()
       .references(() => agents.id, { onDelete: "cascade" }),
-    friendlySignalIdentifier: varchar("friendly_signal_identifier", {
+    slug: varchar("slug", {
       length: 255,
     }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
@@ -75,7 +74,7 @@ export const agentSignals = pgTable(
   },
   (table) => [
     index("agent_signals_agent_idx").on(table.agentId),
-    index("agent_signals_signal_idx").on(table.friendlySignalIdentifier),
+    index("agent_signals_slug_idx").on(table.slug),
   ]
 );
 
@@ -98,6 +97,62 @@ export const agentSignalLogs = pgTable(
   },
   (table) => [
     index("agent_signal_logs_agent_signal_idx").on(table.agentSignalId),
+  ]
+);
+
+export const validModels = pgTable("valid_models", {
+  id: pgUuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidV7()),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  inputCostPer1MTokensCents: integer(
+    "input_cost_per_1m_tokens_cents"
+  ).notNull(),
+  outputCostPer1MTokensCents: integer(
+    "output_cost_per_1m_tokens_cents"
+  ).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const tokenUsage = pgTable(
+  "token_usage",
+  {
+    id: pgUuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidV7()),
+    customerId: pgUuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    agentId: pgUuid("agent_id")
+      .notNull()
+      .references(() => agents.id, { onDelete: "cascade" }),
+    modelId: pgUuid("model_id")
+      .notNull()
+      .references(() => validModels.id, { onDelete: "restrict" }),
+    inputTokens: integer("input_tokens").notNull(),
+    outputTokens: integer("output_tokens").notNull(),
+    totalTokens: integer("total_tokens").notNull(),
+    inputCost: integer("input_cost").notNull(),
+    outputCost: integer("output_cost").notNull(),
+    totalCost: integer("total_cost").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("token_usage_customer_idx").on(table.customerId),
+    index("token_usage_agent_idx").on(table.agentId),
+    index("token_usage_model_idx").on(table.modelId),
+    index("token_usage_created_at_idx").on(table.createdAt),
+    index("token_usage_customer_created_idx").on(
+      table.customerId,
+      table.createdAt
+    ),
   ]
 );
 
@@ -130,6 +185,25 @@ export const agentSignalLogsRelations = relations(
   })
 );
 
+export const validModelsRelations = relations(validModels, ({ many }) => ({
+  tokenUsages: many(tokenUsage),
+}));
+
+export const tokenUsageRelations = relations(tokenUsage, ({ one }) => ({
+  customer: one(customers, {
+    fields: [tokenUsage.customerId],
+    references: [customers.id],
+  }),
+  agent: one(agents, {
+    fields: [tokenUsage.agentId],
+    references: [agents.id],
+  }),
+  model: one(validModels, {
+    fields: [tokenUsage.modelId],
+    references: [validModels.id],
+  }),
+}));
+
 // ============================================================================
 // ZOD SCHEMAS (for validation)
 // ============================================================================
@@ -139,12 +213,16 @@ export const insertCustomerSchema = createInsertSchema(customers);
 export const insertAgentSchema = createInsertSchema(agents);
 export const insertAgentSignalSchema = createInsertSchema(agentSignals);
 export const insertAgentSignalLogSchema = createInsertSchema(agentSignalLogs);
+export const insertValidModelSchema = createInsertSchema(validModels);
+export const insertTokenUsageSchema = createInsertSchema(tokenUsage);
 
 // Select schemas
 export const selectCustomerSchema = createSelectSchema(customers);
 export const selectAgentSchema = createSelectSchema(agents);
 export const selectAgentSignalSchema = createSelectSchema(agentSignals);
 export const selectAgentSignalLogSchema = createSelectSchema(agentSignalLogs);
+export const selectValidModelSchema = createSelectSchema(validModels);
+export const selectTokenUsageSchema = createSelectSchema(tokenUsage);
 
 // Types
 export type Customer = typeof customers.$inferSelect;
@@ -155,3 +233,7 @@ export type AgentSignal = typeof agentSignals.$inferSelect;
 export type NewAgentSignal = typeof agentSignals.$inferInsert;
 export type AgentSignalLog = typeof agentSignalLogs.$inferSelect;
 export type NewAgentSignalLog = typeof agentSignalLogs.$inferInsert;
+export type ValidModel = typeof validModels.$inferSelect;
+export type NewValidModel = typeof validModels.$inferInsert;
+export type TokenUsage = typeof tokenUsage.$inferSelect;
+export type NewTokenUsage = typeof tokenUsage.$inferInsert;

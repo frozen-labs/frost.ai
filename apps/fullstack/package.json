@@ -7,6 +7,7 @@
     "dev": "vite dev",
     "build": "vite build && tsc --noEmit",
     "start": "node .output/server/index.mjs",
+    "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",

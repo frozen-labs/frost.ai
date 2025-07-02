@@ -40,3 +40,6 @@ temp/
 
 # Turborepo
 .turbo/
+
+# AI Files
+CLAUDE.md

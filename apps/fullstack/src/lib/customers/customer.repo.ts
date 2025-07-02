@@ -16,6 +16,15 @@ export const customerRepository = {
     return customer || null;
   },
 
+  async findBySlug(slug: string): Promise<Customer | null> {
+    const [customer] = await db
+      .select()
+      .from(customers)
+      .where(eq(customers.slug, slug))
+      .limit(1);
+    return customer || null;
+  },
+
   async findAll(): Promise<Customer[]> {
     return await db.select().from(customers);
   },

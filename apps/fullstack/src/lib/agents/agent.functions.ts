@@ -25,14 +25,14 @@ export const getAgent = createServerFn({ method: "GET" })
 const saveAgentSchema = z.object({
   agentId: z.string(),
   name: z.string().min(1, "Name is required"),
-  friendlyAgentIdentifier: z.string().min(1, "Identifier is required"),
+  slug: z.string().min(1, "Slug is required"),
   metadata: z.object({}).optional(),
   signals: z
     .array(
       z.object({
         id: z.string().optional(),
         name: z.string(),
-        friendlySignalIdentifier: z.string(),
+        slug: z.string(),
         pricePerCallCents: z.number().min(0).default(0),
       })
     )
@@ -44,7 +44,7 @@ export const saveAgent = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const agentData: NewAgent = {
       name: data.name,
-      friendlyAgentIdentifier: data.friendlyAgentIdentifier,
+      slug: data.slug,
       metadata: data.metadata,
     };
 
@@ -56,7 +56,7 @@ export const saveAgent = createServerFn({ method: "POST" })
         data.signals?.map((signal) => ({
           name: signal.name,
           agentId: newAgent.id,
-          friendlySignalIdentifier: signal.friendlySignalIdentifier,
+          slug: signal.slug,
           pricePerCallCents: signal.pricePerCallCents,
         })) || []
       );
@@ -91,7 +91,7 @@ export const saveAgent = createServerFn({ method: "POST" })
           if (signal.id) {
             await signalRepository.update(signal.id, {
               name: signal.name,
-              friendlySignalIdentifier: signal.friendlySignalIdentifier,
+              slug: signal.slug,
               pricePerCallCents: signal.pricePerCallCents,
             });
           }
@@ -103,7 +103,7 @@ export const saveAgent = createServerFn({ method: "POST" })
             newSignals.map((signal) => ({
               name: signal.name,
               agentId: data.agentId,
-              friendlySignalIdentifier: signal.friendlySignalIdentifier,
+              slug: signal.slug,
               pricePerCallCents: signal.pricePerCallCents,
             }))
           );

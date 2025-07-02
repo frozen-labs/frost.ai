@@ -2,37 +2,42 @@ import { json } from "@tanstack/react-start";
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { agentRepository } from "~/lib/agents/agents.repo";
-import { customerRepository } from "~/lib/customers/customers.repo";
+import { customerRepository } from "~/lib/customers/customer.repo";
 import { signalLogRepository } from "~/lib/signals/signal-logs.repo";
 import { signalRepository } from "~/lib/signals/signals.repo";
 
 const trackSignalSchema = z.object({
-  customerId: z.string().min(1, "Customer ID is required"),
-  agentId: z.string().min(1, "Agent ID is required"),
-  signalId: z.string().min(1, "Signal ID is required"),
+  customerSlug: z.string().min(1, "Customer slug is required"),
+  agentSlug: z.string().min(1, "Agent slug is required"),
+  signalSlug: z.string().min(1, "Signal slug is required"),
   metadata: z.record(z.any()).optional(),
 });
 
-export const ServerRoute = createServerFileRoute("/api/signals/track").methods({
+export const ServerRoute = createServerFileRoute(
+  "/api/metering/signals"
+).methods({
   POST: async ({ request }) => {
     try {
       const body = await request.json();
-      const { customerId, agentId, signalId, metadata } =
+      const { customerSlug, agentSlug, signalSlug, metadata } =
         trackSignalSchema.parse(body);
 
-      const agent = await agentRepository.findByFriendlyIdentifier(agentId);
+      // Find agent by slug
+      const agent = await agentRepository.findBySlug(agentSlug);
       if (!agent) {
-        return json({ error: "agentId not found" }, { status: 404 });
+        return json({ error: "Agent not found" }, { status: 404 });
       }
 
-      const customer = await customerRepository.findById(customerId);
+      // Find customer by slug
+      const customer = await customerRepository.findBySlug(customerSlug);
       if (!customer) {
-        return json({ error: "customerId not found" }, { status: 404 });
+        return json({ error: "Customer not found" }, { status: 404 });
       }
 
-      const signal = await signalRepository.findByFriendlyIdentifier(signalId);
+      // Find signal by slug
+      const signal = await signalRepository.findBySlug(signalSlug);
       if (!signal) {
-        return json({ error: "signalId not found" }, { status: 404 });
+        return json({ error: "Signal not found" }, { status: 404 });
       }
 
       const signalLog = await signalLogRepository.create({
