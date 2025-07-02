@@ -143,23 +143,10 @@ function ModelFormPage() {
                     step="0.01"
                     min="0"
                     value={field.state.value}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.handleChange(
-                        value === "" ? 0 : parseFloat(value) || 0
-                      );
-                    }}
-                    onBlur={(e) => {
-                      const value = e.target.value;
-                      if (value === "") {
-                        field.handleChange(0);
-                      } else {
-                        const rounded =
-                          Math.round(parseFloat(value) * 100) / 100;
-                        field.handleChange(rounded || 0);
-                      }
-                      field.handleBlur();
-                    }}
+                    onChange={(e) =>
+                      field.handleChange(parseFloat(e.target.value))
+                    }
+                    onBlur={field.handleBlur}
                     placeholder="0.03"
                   />
                   {field.state.meta.errors.length > 0 && (
@@ -184,23 +171,10 @@ function ModelFormPage() {
                     step="0.01"
                     min="0"
                     value={field.state.value}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.handleChange(
-                        value === "" ? 0 : parseFloat(value) || 0
-                      );
-                    }}
-                    onBlur={(e) => {
-                      const value = e.target.value;
-                      if (value === "") {
-                        field.handleChange(0);
-                      } else {
-                        const rounded =
-                          Math.round(parseFloat(value) * 100) / 100;
-                        field.handleChange(rounded || 0);
-                      }
-                      field.handleBlur();
-                    }}
+                    onChange={(e) =>
+                      field.handleChange(parseFloat(e.target.value))
+                    }
+                    onBlur={field.handleBlur}
                     placeholder="0.15"
                   />
                   {field.state.meta.errors.length > 0 && (
