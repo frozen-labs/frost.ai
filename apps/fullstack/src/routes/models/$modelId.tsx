@@ -13,7 +13,6 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Switch } from "~/components/ui/switch";
 import { type ValidModel } from "~/lib/database";
 import { getModel, saveModel } from "~/lib/metering/model.functions";
 
@@ -43,7 +42,7 @@ function ModelFormPage() {
 
   const form = useForm({
     defaultValues: {
-      modelIdentifier: model?.modelIdentifier || "",
+      modelIdentifier: model?.slug || "",
       inputCostPer1MTokens: model ? model.inputCostPer1MTokensCents / 100 : 0,
       outputCostPer1MTokens: model ? model.outputCostPer1MTokensCents / 100 : 0,
     },
@@ -55,7 +54,9 @@ function ModelFormPage() {
         await saveModel({
           data: {
             modelId,
-            ...value,
+            slug: value.modelIdentifier,
+            inputCostPer1MTokens: value.inputCostPer1MTokens,
+            outputCostPer1MTokens: value.outputCostPer1MTokens,
           },
         });
 
@@ -210,7 +211,6 @@ function ModelFormPage() {
                 </div>
               )}
             </form.Field>
-
 
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting]}

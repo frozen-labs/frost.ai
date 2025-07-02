@@ -5,7 +5,7 @@ import { tokenTrackingService } from "~/lib/metering/tokens/token-tracking.servi
 const trackingSchema = z.object({
   customerId: z.string().uuid(),
   agentId: z.string().uuid(),
-  modelIdentifier: z.string(),
+  slug: z.string(),
   inputTokens: z.number().int().min(0),
   outputTokens: z.number().int().min(0),
 });

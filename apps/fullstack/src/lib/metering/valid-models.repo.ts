@@ -21,11 +21,11 @@ export const validModelsRepo = {
     return results[0];
   },
 
-  async findByModelIdentifier(modelIdentifier: string): Promise<ValidModel | undefined> {
+  async findBySlug(slug: string): Promise<ValidModel | undefined> {
     const results = await db
       .select()
       .from(validModels)
-      .where(eq(validModels.modelIdentifier, modelIdentifier));
+      .where(eq(validModels.slug, slug));
     return results[0];
   },
 

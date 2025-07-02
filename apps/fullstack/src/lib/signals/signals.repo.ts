@@ -59,7 +59,7 @@ export const signalRepository = {
     const [signal] = await db
       .select()
       .from(agentSignals)
-      .where(eq(agentSignals.friendlySignalIdentifier, friendlyIdentifier))
+      .where(eq(agentSignals.slug, friendlyIdentifier))
       .limit(1);
     return signal || null;
   },

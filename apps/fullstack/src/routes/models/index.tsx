@@ -67,7 +67,7 @@ function ModelsPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <CardTitle>{model.modelIdentifier}</CardTitle>
+                    <CardTitle>{model.slug}</CardTitle>
                   </div>
                   <CardDescription className="space-y-1">
                     <div>

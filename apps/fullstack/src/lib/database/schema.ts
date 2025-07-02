@@ -6,7 +6,6 @@ import {
   pgTable,
   uuid as pgUuid,
   timestamp,
-  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -36,7 +35,7 @@ export const agents = pgTable(
     id: pgUuid("id")
       .primaryKey()
       .$defaultFn(() => uuidV7()),
-    friendlyAgentIdentifier: varchar("friendly_agent_identifier", {
+    slug: varchar("slug", {
       length: 255,
     }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
@@ -50,9 +49,7 @@ export const agents = pgTable(
   },
   (table) => [
     index("agents_name_idx").on(table.name),
-    index("agents_friendly_agent_identifier_idx").on(
-      table.friendlyAgentIdentifier
-    ),
+    index("agents_slug_idx").on(table.slug),
   ]
 );
 
@@ -65,7 +62,7 @@ export const agentSignals = pgTable(
     agentId: pgUuid("agent_id")
       .notNull()
       .references(() => agents.id, { onDelete: "cascade" }),
-    friendlySignalIdentifier: varchar("friendly_signal_identifier", {
+    slug: varchar("slug", {
       length: 255,
     }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
@@ -76,7 +73,7 @@ export const agentSignals = pgTable(
   },
   (table) => [
     index("agent_signals_agent_idx").on(table.agentId),
-    index("agent_signals_signal_idx").on(table.friendlySignalIdentifier),
+    index("agent_signals_slug_idx").on(table.slug),
   ]
 );
 
@@ -102,32 +99,24 @@ export const agentSignalLogs = pgTable(
   ]
 );
 
-export const validModels = pgTable(
-  "valid_models",
-  {
-    id: pgUuid("id")
-      .primaryKey()
-      .$defaultFn(() => uuidV7()),
-    modelIdentifier: varchar("model_identifier", { length: 255 })
-      .notNull()
-      .unique(),
-    inputCostPer1MTokensCents: integer(
-      "input_cost_per_1m_tokens_cents"
-    ).notNull(),
-    outputCostPer1MTokensCents: integer(
-      "output_cost_per_1m_tokens_cents"
-    ).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex("valid_models_identifier_unique").on(table.modelIdentifier),
-  ]
-);
+export const validModels = pgTable("valid_models", {
+  id: pgUuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidV7()),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  inputCostPer1MTokensCents: integer(
+    "input_cost_per_1m_tokens_cents"
+  ).notNull(),
+  outputCostPer1MTokensCents: integer(
+    "output_cost_per_1m_tokens_cents"
+  ).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
 
 export const tokenUsage = pgTable(
   "token_usage",

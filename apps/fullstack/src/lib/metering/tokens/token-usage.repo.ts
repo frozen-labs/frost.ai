@@ -14,7 +14,7 @@ export interface TokenUsageWithRelations extends TokenUsage {
   agent: { id: string; name: string };
   model: {
     id: string;
-    modelIdentifier: string;
+    slug: string;
   };
 }
 
@@ -87,7 +87,7 @@ export const tokenUsageRepo = {
         },
         model: {
           id: validModels.id,
-          modelIdentifier: validModels.modelIdentifier,
+          slug: validModels.slug,
         },
       })
       .from(tokenUsage)
@@ -141,7 +141,7 @@ export const tokenUsageRepo = {
   async getUsageByModel(filters: TokenUsageFilters): Promise<
     Array<{
       modelId: string;
-      modelIdentifier: string;
+      slug: string;
       totalInputTokens: number;
       totalOutputTokens: number;
       totalTokens: number;
@@ -165,7 +165,7 @@ export const tokenUsageRepo = {
     const query = db
       .select({
         modelId: tokenUsage.modelId,
-        modelIdentifier: validModels.modelIdentifier,
+        slug: validModels.slug,
         totalInputTokens: sql<number>`COALESCE(SUM(${tokenUsage.inputTokens}), 0)`,
         totalOutputTokens: sql<number>`COALESCE(SUM(${tokenUsage.outputTokens}), 0)`,
         totalTokens: sql<number>`COALESCE(SUM(${tokenUsage.totalTokens}), 0)`,
@@ -175,10 +175,7 @@ export const tokenUsageRepo = {
       .from(tokenUsage)
       .innerJoin(validModels, eq(tokenUsage.modelId, validModels.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .groupBy(
-        tokenUsage.modelId,
-        validModels.modelIdentifier
-      );
+      .groupBy(tokenUsage.modelId, validModels.slug);
 
     return await query;
   },

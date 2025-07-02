@@ -16,17 +16,16 @@ export const agentRepository = {
     return agent || null;
   },
 
-  async findByFriendlyIdentifier(friendlyIdentifier: string): Promise<Agent | null> {
+  async findByFriendlyIdentifier(
+    friendlyIdentifier: string
+  ): Promise<Agent | null> {
     const [agent] = await db
       .select()
       .from(agents)
-      .where(eq(agents.friendlyAgentIdentifier, friendlyIdentifier))
+      .where(eq(agents.slug, friendlyIdentifier))
       .limit(1);
     return agent || null;
   },
-
-
-
 
   async findAll(): Promise<Agent[]> {
     return await db.select().from(agents);

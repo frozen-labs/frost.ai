@@ -1,9 +1,8 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Plus, X, Edit2, Check } from "lucide-react";
-import { toast } from "sonner";
-import { formatCurrencyInput, parseCurrencyInput, formatCurrency } from "~/lib/utils/currency";
+import { ArrowLeft, Check, Edit2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import {
@@ -17,6 +16,11 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { getAgent, saveAgent } from "~/lib/agents/agent.functions";
 import { AgentSignal, type Agent } from "~/lib/database";
+import {
+  formatCurrency,
+  formatCurrencyInput,
+  parseCurrencyInput,
+} from "~/lib/utils/currency";
 
 export const Route = createFileRoute("/agents/$agentId")({
   loader: async ({ params }) => {
@@ -31,7 +35,7 @@ export const Route = createFileRoute("/agents/$agentId")({
 type SignalForm = {
   id?: string;
   name: string;
-  friendlySignalIdentifier: string;
+  slug: string;
   pricePerCallCents: number;
 };
 
@@ -46,18 +50,20 @@ type SignalCardProps = {
   computeFriendlyIdentifier: (name: string) => string;
 };
 
-function SignalCard({ 
-  signal, 
-  isEditing, 
-  onEdit, 
-  onSave, 
-  onCancel, 
+function SignalCard({
+  signal,
+  isEditing,
+  onEdit,
+  onSave,
+  onCancel,
   onRemove,
-  computeFriendlyIdentifier 
+  computeFriendlyIdentifier,
 }: SignalCardProps) {
   const [editName, setEditName] = useState(signal.name);
   const [editPriceRaw, setEditPriceRaw] = useState("");
-  const [editPriceCents, setEditPriceCents] = useState(signal.pricePerCallCents);
+  const [editPriceCents, setEditPriceCents] = useState(
+    signal.pricePerCallCents
+  );
 
   // Initialize raw price when signal changes or editing starts
   useEffect(() => {
@@ -74,14 +80,18 @@ function SignalCard({
     const cents = parseCurrencyInput(editPriceRaw);
     onSave({
       name: editName,
-      friendlySignalIdentifier: computeFriendlyIdentifier(editName),
+      slug: computeFriendlyIdentifier(editName),
       pricePerCallCents: cents,
     });
   };
 
   const handleCancel = () => {
     setEditName(signal.name);
-    setEditPriceRaw(signal.pricePerCallCents > 0 ? formatCurrencyInput(signal.pricePerCallCents) : "");
+    setEditPriceRaw(
+      signal.pricePerCallCents > 0
+        ? formatCurrencyInput(signal.pricePerCallCents)
+        : ""
+    );
     setEditPriceCents(signal.pricePerCallCents);
     onCancel();
   };
@@ -101,7 +111,7 @@ function SignalCard({
             onChange={(e) => {
               const value = e.target.value;
               // Allow only numbers and decimal point
-              if (value === '' || /^\d*\.?\d*$/.test(value)) {
+              if (value === "" || /^\d*\.?\d*$/.test(value)) {
                 setEditPriceRaw(value);
               }
             }}
@@ -143,28 +153,16 @@ function SignalCard({
     <div className="flex items-center justify-between p-3 border rounded-lg">
       <div>
         <p className="font-medium">{signal.name}</p>
-        <p className="text-sm text-muted-foreground">
-          ID: {signal.friendlySignalIdentifier}
-        </p>
+        <p className="text-sm text-muted-foreground">ID: {signal.slug}</p>
         <p className="text-sm text-muted-foreground">
           Price: {formatCurrency(signal.pricePerCallCents)} per call
         </p>
       </div>
       <div className="flex gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onEdit}
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onEdit}>
           <Edit2 className="h-4 w-4" />
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -197,7 +195,7 @@ function AgentFormPage() {
         (signal: AgentSignal) => ({
           id: signal.id,
           name: signal.name,
-          friendlySignalIdentifier: signal.friendlySignalIdentifier,
+          slug: signal.slug,
           pricePerCallCents: signal.pricePerCallCents || 0,
         })
       );
@@ -212,7 +210,7 @@ function AgentFormPage() {
   const form = useForm({
     defaultValues: {
       name: agent?.name || "",
-      friendlyAgentIdentifier: agent?.friendlyAgentIdentifier || "",
+      friendlyAgentIdentifier: agent?.slug || "",
     },
     validators: {
       onChange: formSchema,
@@ -228,17 +226,23 @@ function AgentFormPage() {
           },
         });
 
-        toast.success(isNewAgent ? "Agent created successfully!" : "Agent updated successfully!");
+        toast.success(
+          isNewAgent
+            ? "Agent created successfully!"
+            : "Agent updated successfully!"
+        );
         navigate({ to: "/agents" });
       } catch (error) {
-        toast.error(isNewAgent ? "Failed to create agent" : "Failed to update agent");
+        toast.error(
+          isNewAgent ? "Failed to create agent" : "Failed to update agent"
+        );
         console.error("Error saving agent:", error);
       }
     },
   });
 
   // Compute friendly agent identifier from name
-  const computeFriendlyIdentifier = (inputName: string) => {
+  const computeSlug = (inputName: string) => {
     return inputName.toLowerCase().replace(/\s+/g, "-");
   };
 
@@ -252,7 +256,7 @@ function AgentFormPage() {
       const cents = parseCurrencyInput(newSignalPriceRaw);
       const newSignal = {
         name: newSignalName,
-        friendlySignalIdentifier: computeFriendlyIdentifier(newSignalName),
+        slug: computeSlug(newSignalName),
         pricePerCallCents: cents,
       };
       setSignals((prev) => [...prev, newSignal]);
@@ -271,10 +275,15 @@ function AgentFormPage() {
     setEditingIndex(index);
   };
 
-  const handleSaveSignal = (index: number, updatedSignal: Partial<SignalForm>) => {
-    setSignals((prev) => prev.map((signal, i) => 
-      i === index ? { ...signal, ...updatedSignal } : signal
-    ));
+  const handleSaveSignal = (
+    index: number,
+    updatedSignal: Partial<SignalForm>
+  ) => {
+    setSignals((prev) =>
+      prev.map((signal, i) =>
+        i === index ? { ...signal, ...updatedSignal } : signal
+      )
+    );
     setEditingIndex(null);
   };
 
@@ -337,7 +346,7 @@ function AgentFormPage() {
             <form.Subscribe
               selector={(state) => state.values.name}
               children={(name) => {
-                const computedIdentifier = computeFriendlyIdentifier(name);
+                const computedIdentifier = computeSlug(name);
                 return (
                   <form.Field name="friendlyAgentIdentifier">
                     {(field) => {
@@ -387,10 +396,12 @@ function AgentFormPage() {
                       index={index}
                       isEditing={editingIndex === index}
                       onEdit={() => handleEditSignal(index)}
-                      onSave={(updatedSignal) => handleSaveSignal(index, updatedSignal)}
+                      onSave={(updatedSignal) =>
+                        handleSaveSignal(index, updatedSignal)
+                      }
                       onCancel={handleCancelEdit}
                       onRemove={() => handleRemoveSignal(index)}
-                      computeFriendlyIdentifier={computeFriendlyIdentifier}
+                      computeFriendlyIdentifier={computeSlug}
                     />
                   ))}
                 </div>
@@ -408,7 +419,7 @@ function AgentFormPage() {
                   onChange={(e) => {
                     const value = e.target.value;
                     // Allow only numbers and decimal point
-                    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                    if (value === "" || /^\d*\.?\d*$/.test(value)) {
                       setNewSignalPriceRaw(value);
                     }
                   }}
@@ -443,8 +454,8 @@ function AgentFormPage() {
                     {isSubmitting
                       ? "..."
                       : isNewAgent
-                        ? "Create Agent"
-                        : "Save Changes"}
+                      ? "Create Agent"
+                      : "Save Changes"}
                   </Button>
                   <Button
                     type="button"
