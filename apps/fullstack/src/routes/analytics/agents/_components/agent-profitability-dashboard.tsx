@@ -83,7 +83,7 @@ export function AgentProfitabilityDashboard({
 
   useEffect(() => {
     fetchData();
-  }, [agentId, customerId, dateRange.from, dateRange.to]);
+  }, [agentId, customerId]);
 
   if (loading) {
     return (
@@ -125,6 +125,7 @@ export function AgentProfitabilityDashboard({
                   <Calendar
                     mode="single"
                     selected={dateRange.from}
+                    defaultMonth={dateRange.from}
                     onSelect={(date) =>
                       date && setDateRange({ ...dateRange, from: date })
                     }
@@ -146,6 +147,7 @@ export function AgentProfitabilityDashboard({
                   <Calendar
                     mode="single"
                     selected={dateRange.to}
+                    defaultMonth={dateRange.to}
                     onSelect={(date) =>
                       date && setDateRange({ ...dateRange, to: date })
                     }

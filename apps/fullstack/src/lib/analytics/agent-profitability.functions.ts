@@ -29,7 +29,15 @@ export const getAgentProfitabilitySummary = createServerFn({ method: "GET" })
       const end = new Date(data.dateRange.endDate);
       periodDays = Math.ceil(
         (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-      );
+      ) + 1; // Add 1 to include both start and end dates
+      
+      console.log("Date range calculation:", {
+        startDate: data.dateRange.startDate,
+        endDate: data.dateRange.endDate,
+        startParsed: start.toISOString(),
+        endParsed: end.toISOString(),
+        periodDays
+      });
     }
 
     return {
