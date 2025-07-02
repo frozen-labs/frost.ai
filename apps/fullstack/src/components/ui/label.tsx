@@ -1,7 +1,7 @@
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
+import * as LabelPrimitive from "@radix-ui/react-label";
+import * as React from "react";
 
-import { cn } from "~/components/utils"
+import { cn } from "~/lib/utils/styles";
 
 function Label({
   className,
@@ -16,7 +16,7 @@ function Label({
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Label }
+export { Label };
