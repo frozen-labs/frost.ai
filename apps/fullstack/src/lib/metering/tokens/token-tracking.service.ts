@@ -5,7 +5,7 @@ import { tokenUsageRepo } from "./token-usage.repo";
 export interface TokenTrackingInput {
   customerId: string;
   agentId: string;
-  slug: string;
+  modelId: string;
   inputTokens: number;
   outputTokens: number;
 }
@@ -13,10 +13,10 @@ export interface TokenTrackingInput {
 export class TokenTrackingService {
   async trackUsage(input: TokenTrackingInput): Promise<string> {
     // Find the model by identifier
-    const model = await validModelsRepo.findBySlug(input.slug);
+    const model = await validModelsRepo.findBySlug(input.modelId);
 
     if (!model) {
-      throw new Error(`Model with identifier ${input.slug} not found`);
+      throw new Error(`Model with identifier ${input.modelId} not found`);
     }
 
     // Calculate costs in cents (model costs are already in cents per 1M tokens)
@@ -49,10 +49,10 @@ export class TokenTrackingService {
     const usages: NewTokenUsage[] = [];
 
     for (const input of inputs) {
-      const model = await validModelsRepo.findBySlug(input.slug);
+      const model = await validModelsRepo.findBySlug(input.modelId);
 
       if (!model) {
-        console.warn(`Model with slug ${input.slug} not found, skipping`);
+        console.warn(`Model with slug ${input.modelId} not found, skipping`);
         continue;
       }
 
