@@ -1,0 +1,203 @@
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { formatCurrency } from "~/lib/utils/currency";
+import { getAgentProfitabilitySummary } from "~/lib/analytics/agent-profitability.functions";
+
+interface AgentProfitabilityDashboardProps {
+  agentId: string;
+  customerId?: string;
+}
+
+interface KPIBoxProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  isNegative?: boolean;
+}
+
+function KPIBox({ title, value, subtitle, isNegative }: KPIBoxProps) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className={`text-2xl font-bold ${isNegative ? "text-red-600" : ""}`}>
+          {value}
+        </div>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function AgentProfitabilityDashboard({
+  agentId,
+  customerId,
+}: AgentProfitabilityDashboardProps) {
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+    to: new Date(),
+  });
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const profitability = await getAgentProfitabilitySummary({
+        agentId,
+        customerId,
+        dateRange: {
+          startDate: dateRange.from.toISOString(),
+          endDate: dateRange.to.toISOString(),
+        },
+      });
+      setData(profitability);
+    } catch (error) {
+      console.error("Error fetching profitability data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [agentId, customerId, dateRange]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading profitability data...</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">No data available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Date Range Selector */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Agent Profitability</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(dateRange.from, "PPP")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.from}
+                    onSelect={(date) =>
+                      date && setDateRange({ ...dateRange, from: date })
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-muted-foreground">to</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(dateRange.to, "PPP")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.to}
+                    onSelect={(date) =>
+                      date && setDateRange({ ...dateRange, to: date })
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <Button onClick={fetchData} disabled={loading}>
+              {loading ? "Loading..." : "Refresh"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* KPI Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <KPIBox
+          title="Total Revenue"
+          value={formatCurrency(data.revenue)}
+          subtitle={`${data.signalCallCount} signal calls`}
+        />
+        <KPIBox
+          title="Total Costs"
+          value={formatCurrency(data.costs)}
+          subtitle={`${data.tokenUsageCount} AI requests`}
+        />
+        <KPIBox
+          title="Profit"
+          value={formatCurrency(data.profit)}
+          subtitle={`${data.periodDays} day period`}
+          isNegative={data.profit < 0}
+        />
+        <KPIBox
+          title="Profit Margin"
+          value={`${data.profitMargin.toFixed(1)}%`}
+          subtitle={data.revenue === 0 ? "No revenue" : ""}
+          isNegative={data.profitMargin < 0}
+        />
+      </div>
+
+      {/* Daily Averages */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <KPIBox
+          title="Daily Revenue"
+          value={formatCurrency(data.dailyRevenue)}
+          subtitle="Average per day"
+        />
+        <KPIBox
+          title="Daily Costs"
+          value={formatCurrency(data.dailyCosts)}
+          subtitle="Average per day"
+        />
+        <KPIBox
+          title="Daily Profit"
+          value={formatCurrency(data.dailyProfit)}
+          subtitle="Average per day"
+          isNegative={data.dailyProfit < 0}
+        />
+      </div>
+    </div>
+  );
+}

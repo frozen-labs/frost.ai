@@ -19,6 +19,7 @@ import { Route as AgentsIndexRouteImport } from './routes/agents/index'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers/$customerId'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { Route as AnalyticsTokenUsageIndexRouteImport } from './routes/analytics/token-usage/index'
+import { Route as AnalyticsAgentsAgentIdRouteImport } from './routes/analytics/agents/$agentId'
 import { ServerRoute as ApiTokenUsageIndexServerRouteImport } from './routes/api/token-usage/index'
 import { ServerRoute as ApiHealthIndexServerRouteImport } from './routes/api/health/index'
 import { ServerRoute as ApiCustomersIndexServerRouteImport } from './routes/api/customers/index'
@@ -71,6 +72,11 @@ const AnalyticsTokenUsageIndexRoute =
     path: '/analytics/token-usage/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AnalyticsAgentsAgentIdRoute = AnalyticsAgentsAgentIdRouteImport.update({
+  id: '/analytics/agents/$agentId',
+  path: '/analytics/agents/$agentId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTokenUsageIndexServerRoute =
   ApiTokenUsageIndexServerRouteImport.update({
     id: '/api/token-usage/',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/agents/': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/analytics/agents/$agentId': typeof AnalyticsAgentsAgentIdRoute
   '/analytics/token-usage': typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileRoutesByTo {
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/agents': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/analytics/agents/$agentId': typeof AnalyticsAgentsAgentIdRoute
   '/analytics/token-usage': typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileRoutesById {
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/agents/': typeof AgentsIndexRoute
   '/analytics/': typeof AnalyticsIndexRoute
   '/customers/': typeof CustomersIndexRoute
+  '/analytics/agents/$agentId': typeof AnalyticsAgentsAgentIdRoute
   '/analytics/token-usage/': typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileRouteTypes {
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/analytics'
     | '/customers'
+    | '/analytics/agents/$agentId'
     | '/analytics/token-usage'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/analytics'
     | '/customers'
+    | '/analytics/agents/$agentId'
     | '/analytics/token-usage'
   id:
     | '__root__'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/analytics/'
     | '/customers/'
+    | '/analytics/agents/$agentId'
     | '/analytics/token-usage/'
   fileRoutesById: FileRoutesById
 }
@@ -185,6 +197,7 @@ export interface RootRouteChildren {
   CustomersCustomerIdRoute: typeof CustomersCustomerIdRoute
   AnalyticsIndexRoute: typeof AnalyticsIndexRoute
   CustomersIndexRoute: typeof CustomersIndexRoute
+  AnalyticsAgentsAgentIdRoute: typeof AnalyticsAgentsAgentIdRoute
   AnalyticsTokenUsageIndexRoute: typeof AnalyticsTokenUsageIndexRoute
 }
 export interface FileServerRoutesByFullPath {
@@ -320,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsTokenUsageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics/agents/$agentId': {
+      id: '/analytics/agents/$agentId'
+      path: '/analytics/agents/$agentId'
+      fullPath: '/analytics/agents/$agentId'
+      preLoaderRoute: typeof AnalyticsAgentsAgentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 declare module '@tanstack/react-start/server' {
@@ -403,6 +423,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustomersCustomerIdRoute: CustomersCustomerIdRoute,
   AnalyticsIndexRoute: AnalyticsIndexRoute,
   CustomersIndexRoute: CustomersIndexRoute,
+  AnalyticsAgentsAgentIdRoute: AnalyticsAgentsAgentIdRoute,
   AnalyticsTokenUsageIndexRoute: AnalyticsTokenUsageIndexRoute,
 }
 export const routeTree = rootRouteImport
