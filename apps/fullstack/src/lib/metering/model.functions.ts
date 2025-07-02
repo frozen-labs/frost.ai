@@ -19,8 +19,8 @@ export const getModel = createServerFn({ method: "GET" })
 const saveModelSchema = z.object({
   modelId: z.string(),
   modelIdentifier: z.string().min(1, "Model identifier is required"),
-  inputCostPer1kTokensCents: z.number().min(0, "Input cost must be positive"),
-  outputCostPer1kTokensCents: z.number().min(0, "Output cost must be positive"),
+  inputCostPer1kTokens: z.number().min(0, "Input cost must be positive"),
+  outputCostPer1kTokens: z.number().min(0, "Output cost must be positive"),
   isActive: z.boolean(),
 });
 
@@ -29,8 +29,8 @@ export const saveModel = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const modelData: NewValidModel = {
       modelIdentifier: data.modelIdentifier,
-      inputCostPer1kTokensCents: data.inputCostPer1kTokensCents,
-      outputCostPer1kTokensCents: data.outputCostPer1kTokensCents,
+      inputCostPer1kTokensCents: Math.round(data.inputCostPer1kTokens * 100),
+      outputCostPer1kTokensCents: Math.round(data.outputCostPer1kTokens * 100),
       isActive: data.isActive,
     };
 

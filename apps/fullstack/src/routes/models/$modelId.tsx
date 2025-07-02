@@ -29,8 +29,8 @@ export const Route = createFileRoute("/models/$modelId")({
 
 const formSchema = z.object({
   modelIdentifier: z.string().min(1, "Model identifier is required"),
-  inputCostPer1kTokensCents: z.number().min(0, "Input cost must be positive"),
-  outputCostPer1kTokensCents: z.number().min(0, "Output cost must be positive"),
+  inputCostPer1kTokens: z.number().min(0, "Input cost must be positive"),
+  outputCostPer1kTokens: z.number().min(0, "Output cost must be positive"),
   isActive: z.boolean(),
 });
 
@@ -45,8 +45,8 @@ function ModelFormPage() {
   const form = useForm({
     defaultValues: {
       modelIdentifier: model?.modelIdentifier || "",
-      inputCostPer1kTokensCents: model?.inputCostPer1kTokensCents || 0,
-      outputCostPer1kTokensCents: model?.outputCostPer1kTokensCents || 0,
+      inputCostPer1kTokens: model ? model.inputCostPer1kTokensCents / 100 : 0,
+      outputCostPer1kTokens: model ? model.outputCostPer1kTokensCents / 100 : 0,
       isActive: model?.isActive ?? true,
     },
     validators: {
@@ -78,16 +78,6 @@ function ModelFormPage() {
 
   const handleCancel = () => {
     navigate({ to: "/models" });
-  };
-
-  const formatCentsToDecimal = (cents: number) => {
-    return (cents / 100).toFixed(4);
-  };
-
-  const parseCentsFromDecimal = (value: string) => {
-    if (value === "" || value === null || value === undefined) return 0;
-    const decimal = parseFloat(value);
-    return isNaN(decimal) ? 0 : Math.round(decimal * 100);
   };
 
   return (
@@ -134,12 +124,14 @@ function ModelFormPage() {
                       {field.state.meta.errors.join(", ")}
                     </p>
                   )}
+                  <p className="text-sm text-muted-foreground">
+                    This is the unique model identifier used in the database
+                  </p>
                 </div>
               )}
             </form.Field>
 
-
-            <form.Field name="inputCostPer1kTokensCents">
+            <form.Field name="inputCostPer1kTokens">
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor={field.name}>
@@ -149,14 +141,19 @@ function ModelFormPage() {
                     id={field.name}
                     name={field.name}
                     type="number"
-                    step="0.0001"
+                    step="0.01"
                     min="0"
-                    value={formatCentsToDecimal(field.state.value)}
+                    value={field.state.value}
                     onChange={(e) =>
-                      field.handleChange(parseCentsFromDecimal(e.target.value))
+                      field.handleChange(parseFloat(e.target.value) || 0)
                     }
-                    onBlur={field.handleBlur}
-                    placeholder="0.0030"
+                    onBlur={(e) => {
+                      const rounded =
+                        Math.round(parseFloat(e.target.value) * 100) / 100;
+                      field.handleChange(rounded || 0);
+                      field.handleBlur();
+                    }}
+                    placeholder="0.03"
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm text-red-600">
@@ -167,7 +164,7 @@ function ModelFormPage() {
               )}
             </form.Field>
 
-            <form.Field name="outputCostPer1kTokensCents">
+            <form.Field name="outputCostPer1kTokens">
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor={field.name}>
@@ -177,14 +174,19 @@ function ModelFormPage() {
                     id={field.name}
                     name={field.name}
                     type="number"
-                    step="0.0001"
+                    step="0.01"
                     min="0"
-                    value={formatCentsToDecimal(field.state.value)}
+                    value={field.state.value}
                     onChange={(e) =>
-                      field.handleChange(parseCentsFromDecimal(e.target.value))
+                      field.handleChange(parseFloat(e.target.value) || 0)
                     }
-                    onBlur={field.handleBlur}
-                    placeholder="0.0150"
+                    onBlur={(e) => {
+                      const rounded =
+                        Math.round(parseFloat(e.target.value) * 100) / 100;
+                      field.handleChange(rounded || 0);
+                      field.handleBlur();
+                    }}
+                    placeholder="0.15"
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm text-red-600">
@@ -207,18 +209,6 @@ function ModelFormPage() {
                 </div>
               )}
             </form.Field>
-
-            {!isNewModel && model && (
-              <div className="space-y-2">
-                <Label>Model ID</Label>
-                <div className="px-3 py-2 bg-muted rounded-md text-sm font-mono">
-                  {model.id}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  This is the unique model identifier in the database
-                </p>
-              </div>
-            )}
 
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting]}
