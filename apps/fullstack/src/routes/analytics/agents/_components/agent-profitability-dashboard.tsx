@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,11 +10,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import {
+  getAgentsList,
+  getCustomersList,
+} from "~/lib/analytics/agent-customer-list.functions";
 import { getAgentProfitabilitySummary } from "~/lib/analytics/agent-profitability.functions";
 import { formatCurrency } from "~/lib/utils/currency";
 
 interface AgentProfitabilityDashboardProps {
-  agentId: string;
+  agentId?: string;
   customerId?: string;
 }
 
@@ -50,12 +62,18 @@ export function AgentProfitabilityDashboard({
   agentId,
   customerId,
 }: AgentProfitabilityDashboardProps) {
+  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
     to: new Date(),
   });
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [agents, setAgents] = useState<{ id: string; name: string }[]>([]);
+  const [customers, setCustomers] = useState<{ id: string; name: string }[]>(
+    []
+  );
+  const [selectorsLoading, setSelectorsLoading] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
@@ -92,6 +110,41 @@ export function AgentProfitabilityDashboard({
     fetchData();
   }, [agentId, customerId]);
 
+  useEffect(() => {
+    const loadSelectors = async () => {
+      try {
+        setSelectorsLoading(true);
+        const [agentsList, customersList] = await Promise.all([
+          getAgentsList(),
+          getCustomersList(),
+        ]);
+        console.log("Loaded agents:", agentsList);
+        console.log("Loaded customers:", customersList);
+        setAgents(agentsList);
+        setCustomers(customersList);
+      } catch (error) {
+        console.error("Error loading selectors:", error);
+      } finally {
+        setSelectorsLoading(false);
+      }
+    };
+    loadSelectors();
+  }, []);
+
+  const handleAgentChange = (value: string) => {
+    const searchObj: Record<string, string> = {};
+    if (value !== "all") searchObj.agentId = value;
+    if (customerId) searchObj.customerId = customerId;
+    navigate({ to: "/analytics/agents", search: searchObj });
+  };
+
+  const handleCustomerChange = (value: string) => {
+    const searchObj: Record<string, string> = {};
+    if (agentId) searchObj.agentId = agentId;
+    if (value !== "all") searchObj.customerId = value;
+    navigate({ to: "/analytics/agents", search: searchObj });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -110,61 +163,116 @@ export function AgentProfitabilityDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Date Range Selector */}
+      {/* Filters and Date Range */}
       <Card>
         <CardHeader>
-          <CardTitle>Agent Profitability</CardTitle>
+          <CardTitle>
+            {!agentId
+              ? "All Agents"
+              : agentId && !customerId
+              ? "Agent"
+              : "Agent & Customer"}{" "}
+            Profitability
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(dateRange.from, "PPP")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dateRange.from}
-                    defaultMonth={dateRange.from}
-                    onSelect={(date) =>
-                      date && setDateRange({ ...dateRange, from: date })
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
-              <span className="text-muted-foreground">to</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(dateRange.to, "PPP")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dateRange.to}
-                    defaultMonth={dateRange.to}
-                    onSelect={(date) =>
-                      date && setDateRange({ ...dateRange, to: date })
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+          <div className="flex flex-col gap-4">
+            {/* Selectors Row */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">Agent</label>
+                <Select
+                  value={agentId || "all"}
+                  onValueChange={handleAgentChange}
+                  disabled={selectorsLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Agents</SelectItem>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">
+                  Customer
+                </label>
+                <Select
+                  value={customerId || "all"}
+                  onValueChange={handleCustomerChange}
+                  disabled={selectorsLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Customers</SelectItem>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Button onClick={fetchData} disabled={loading}>
-              {loading ? "Loading..." : "Refresh"}
-            </Button>
+            {/* Date Range Row */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(dateRange.from, "PPP")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateRange.from}
+                      defaultMonth={dateRange.from}
+                      onSelect={(date) =>
+                        date && setDateRange({ ...dateRange, from: date })
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
+                <span className="text-muted-foreground">to</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(dateRange.to, "PPP")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateRange.to}
+                      defaultMonth={dateRange.to}
+                      onSelect={(date) =>
+                        date && setDateRange({ ...dateRange, to: date })
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <Button onClick={fetchData} disabled={loading}>
+                {loading ? "Loading..." : "Refresh"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
