@@ -3,7 +3,7 @@ import { db } from "../database/index";
 import {
   agents,
   customers,
-  llmModels,
+  validModels,
   tokenUsage,
   type NewTokenUsage,
   type TokenUsage,
@@ -14,9 +14,8 @@ export interface TokenUsageWithRelations extends TokenUsage {
   agent: { id: string; name: string };
   model: {
     id: string;
-    modelName: string;
+    modelIdentifier: string;
     displayName: string;
-    provider: string;
   };
 }
 
@@ -72,14 +71,12 @@ export const tokenUsageRepo = {
         customerId: tokenUsage.customerId,
         agentId: tokenUsage.agentId,
         modelId: tokenUsage.modelId,
-        requestId: tokenUsage.requestId,
         inputTokens: tokenUsage.inputTokens,
         outputTokens: tokenUsage.outputTokens,
         totalTokens: tokenUsage.totalTokens,
         inputCost: tokenUsage.inputCost,
         outputCost: tokenUsage.outputCost,
         totalCost: tokenUsage.totalCost,
-        metadata: tokenUsage.metadata,
         createdAt: tokenUsage.createdAt,
         customer: {
           id: customers.id,
@@ -90,16 +87,15 @@ export const tokenUsageRepo = {
           name: agents.name,
         },
         model: {
-          id: llmModels.id,
-          modelName: llmModels.modelName,
-          displayName: llmModels.displayName,
-          provider: llmModels.provider,
+          id: validModels.id,
+          modelIdentifier: validModels.modelIdentifier,
+          displayName: validModels.displayName,
         },
       })
       .from(tokenUsage)
       .innerJoin(customers, eq(tokenUsage.customerId, customers.id))
       .innerJoin(agents, eq(tokenUsage.agentId, agents.id))
-      .innerJoin(llmModels, eq(tokenUsage.modelId, llmModels.id))
+      .innerJoin(validModels, eq(tokenUsage.modelId, validModels.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(tokenUsage.createdAt))
       .limit(limit);
@@ -147,8 +143,8 @@ export const tokenUsageRepo = {
   async getUsageByModel(filters: TokenUsageFilters): Promise<
     Array<{
       modelId: string;
-      modelName: string;
-      providerName: string;
+      modelIdentifier: string;
+      displayName: string;
       totalInputTokens: number;
       totalOutputTokens: number;
       totalTokens: number;
@@ -172,8 +168,8 @@ export const tokenUsageRepo = {
     const query = db
       .select({
         modelId: tokenUsage.modelId,
-        modelName: llmModels.modelName,
-        providerName: llmModels.provider,
+        modelIdentifier: validModels.modelIdentifier,
+        displayName: validModels.displayName,
         totalInputTokens: sql<number>`COALESCE(SUM(${tokenUsage.inputTokens}), 0)`,
         totalOutputTokens: sql<number>`COALESCE(SUM(${tokenUsage.outputTokens}), 0)`,
         totalTokens: sql<number>`COALESCE(SUM(${tokenUsage.totalTokens}), 0)`,
@@ -181,9 +177,9 @@ export const tokenUsageRepo = {
         requestCount: sql<number>`COUNT(*)`,
       })
       .from(tokenUsage)
-      .innerJoin(llmModels, eq(tokenUsage.modelId, llmModels.id))
+      .innerJoin(validModels, eq(tokenUsage.modelId, validModels.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .groupBy(tokenUsage.modelId, llmModels.modelName, llmModels.provider);
+      .groupBy(tokenUsage.modelId, validModels.modelIdentifier, validModels.displayName);
 
     return await query;
   },

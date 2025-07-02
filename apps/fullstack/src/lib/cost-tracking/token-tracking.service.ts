@@ -1,28 +1,23 @@
 import type { NewTokenUsage } from "../database/schema";
-import { llmModelsRepo } from "./llm-models.repo";
+import { validModelsRepo } from "./valid-models.repo";
 import { tokenUsageRepo } from "./token-usage.repo";
 
 export interface TokenTrackingInput {
   customerId: string;
   agentId: string;
-  provider: string;
-  model: string;
+  modelIdentifier: string;
   inputTokens: number;
   outputTokens: number;
-  requestId?: string;
-  sessionId?: string;
-  metadata?: Record<string, any>;
 }
 
 export class TokenTrackingService {
   async trackUsage(input: TokenTrackingInput): Promise<string> {
-    // Find the model by provider and model name
-    const provider = await llmModelsRepo.findByProviderName(input.provider);
-    const model = provider.find((m) => m.modelName === input.model);
+    // Find the model by identifier
+    const model = await validModelsRepo.findByModelIdentifier(input.modelIdentifier);
 
     if (!model) {
       throw new Error(
-        `Model ${input.model} not found for provider ${input.provider}`
+        `Model with identifier ${input.modelIdentifier} not found`
       );
     }
 
@@ -39,14 +34,12 @@ export class TokenTrackingService {
       customerId: input.customerId,
       agentId: input.agentId,
       modelId: model.id,
-      requestId: input.requestId,
       inputTokens: input.inputTokens,
       outputTokens: input.outputTokens,
       totalTokens: input.inputTokens + input.outputTokens,
       inputCost: inputCost,
       outputCost: outputCost,
       totalCost: totalCost,
-      metadata: input.metadata,
     };
 
     const created = await tokenUsageRepo.create(usage);
@@ -57,12 +50,11 @@ export class TokenTrackingService {
     const usages: NewTokenUsage[] = [];
 
     for (const input of inputs) {
-      const provider = await llmModelsRepo.findByProviderName(input.provider);
-      const model = provider.find((m) => m.modelName === input.model);
+      const model = await validModelsRepo.findByModelIdentifier(input.modelIdentifier);
 
       if (!model) {
         console.warn(
-          `Model ${input.model} not found for provider ${input.provider}, skipping`
+          `Model with identifier ${input.modelIdentifier} not found, skipping`
         );
         continue;
       }
@@ -78,14 +70,12 @@ export class TokenTrackingService {
         customerId: input.customerId,
         agentId: input.agentId,
         modelId: model.id,
-        requestId: input.requestId,
         inputTokens: input.inputTokens,
         outputTokens: input.outputTokens,
         totalTokens: input.inputTokens + input.outputTokens,
         inputCost: inputCost,
         outputCost: outputCost,
         totalCost: totalCost,
-        metadata: input.metadata,
       });
     }
 

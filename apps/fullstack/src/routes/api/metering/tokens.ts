@@ -5,13 +5,9 @@ import { tokenTrackingService } from "~/lib/cost-tracking/token-tracking.service
 const trackingSchema = z.object({
   customerId: z.string().uuid(),
   agentId: z.string().uuid(),
-  provider: z.string(),
-  model: z.string(),
+  modelIdentifier: z.string(),
   inputTokens: z.number().int().min(0),
   outputTokens: z.number().int().min(0),
-  requestId: z.string().optional(),
-  sessionId: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
 });
 
 export const ServerRoute = createServerFileRoute(

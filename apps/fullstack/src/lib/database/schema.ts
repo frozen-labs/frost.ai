@@ -104,15 +104,14 @@ export const agentSignalLogs = pgTable(
   ]
 );
 
-export const llmModels = pgTable(
-  "llm_models",
+export const validModels = pgTable(
+  "valid_models",
   {
     id: pgUuid("id")
       .primaryKey()
       .$defaultFn(() => uuidV7()),
-    provider: varchar("provider", { length: 50 }).notNull(),
-    modelName: varchar("model_name", { length: 100 }).notNull(),
-    displayName: varchar("display_name", { length: 100 }).notNull(),
+    modelIdentifier: varchar("model_identifier", { length: 255 }).notNull().unique(),
+    displayName: varchar("display_name", { length: 255 }).notNull(),
     inputCostPer1kTokens: numeric("input_cost_per_1k_tokens", {
       precision: 10,
       scale: 6,
@@ -130,13 +129,8 @@ export const llmModels = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("llm_models_provider_model_unique").on(
-      table.provider,
-      table.modelName
-    ),
-    index("llm_models_provider_idx").on(table.provider),
-    index("llm_models_model_name_idx").on(table.modelName),
-    index("llm_models_is_active_idx").on(table.isActive),
+    uniqueIndex("valid_models_identifier_unique").on(table.modelIdentifier),
+    index("valid_models_is_active_idx").on(table.isActive),
   ]
 );
 
@@ -154,15 +148,13 @@ export const tokenUsage = pgTable(
       .references(() => agents.id, { onDelete: "cascade" }),
     modelId: pgUuid("model_id")
       .notNull()
-      .references(() => llmModels.id, { onDelete: "restrict" }),
-    requestId: varchar("request_id", { length: 255 }),
+      .references(() => validModels.id, { onDelete: "restrict" }),
     inputTokens: integer("input_tokens").notNull(),
     outputTokens: integer("output_tokens").notNull(),
     totalTokens: integer("total_tokens").notNull(),
     inputCost: integer("input_cost").notNull(),
     outputCost: integer("output_cost").notNull(),
     totalCost: integer("total_cost").notNull(),
-    metadata: jsonb("metadata").$type<Record<string, any>>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -209,7 +201,7 @@ export const agentSignalLogsRelations = relations(
   })
 );
 
-export const llmModelsRelations = relations(llmModels, ({ many }) => ({
+export const validModelsRelations = relations(validModels, ({ many }) => ({
   tokenUsages: many(tokenUsage),
 }));
 
@@ -222,9 +214,9 @@ export const tokenUsageRelations = relations(tokenUsage, ({ one }) => ({
     fields: [tokenUsage.agentId],
     references: [agents.id],
   }),
-  model: one(llmModels, {
+  model: one(validModels, {
     fields: [tokenUsage.modelId],
-    references: [llmModels.id],
+    references: [validModels.id],
   }),
 }));
 
@@ -238,7 +230,7 @@ export const insertCustomerSchema = createInsertSchema(customers);
 export const insertAgentSchema = createInsertSchema(agents);
 export const insertAgentSignalSchema = createInsertSchema(agentSignals);
 export const insertAgentSignalLogSchema = createInsertSchema(agentSignalLogs);
-export const insertLlmModelSchema = createInsertSchema(llmModels);
+export const insertValidModelSchema = createInsertSchema(validModels);
 export const insertTokenUsageSchema = createInsertSchema(tokenUsage);
 
 // Select schemas
@@ -246,7 +238,7 @@ export const selectCustomerSchema = createSelectSchema(customers);
 export const selectAgentSchema = createSelectSchema(agents);
 export const selectAgentSignalSchema = createSelectSchema(agentSignals);
 export const selectAgentSignalLogSchema = createSelectSchema(agentSignalLogs);
-export const selectLlmModelSchema = createSelectSchema(llmModels);
+export const selectValidModelSchema = createSelectSchema(validModels);
 export const selectTokenUsageSchema = createSelectSchema(tokenUsage);
 
 // Types
@@ -258,7 +250,7 @@ export type AgentSignal = typeof agentSignals.$inferSelect;
 export type NewAgentSignal = typeof agentSignals.$inferInsert;
 export type AgentSignalLog = typeof agentSignalLogs.$inferSelect;
 export type NewAgentSignalLog = typeof agentSignalLogs.$inferInsert;
-export type LlmModel = typeof llmModels.$inferSelect;
-export type NewLlmModel = typeof llmModels.$inferInsert;
+export type ValidModel = typeof validModels.$inferSelect;
+export type NewValidModel = typeof validModels.$inferInsert;
 export type TokenUsage = typeof tokenUsage.$inferSelect;
 export type NewTokenUsage = typeof tokenUsage.$inferInsert;
