@@ -10,6 +10,7 @@ export function Sidebar() {
     { href: "/customers", label: "Customers", icon: Users },
     { href: "/agents", label: "Agents", icon: Bot },
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
+    { href: "/models", label: "Models", icon: Bot },
   ];
 
   return (

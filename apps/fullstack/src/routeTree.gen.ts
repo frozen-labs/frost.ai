@@ -13,9 +13,11 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AgentsRouteRouteImport } from './routes/agents/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ModelsIndexRouteImport } from './routes/models/index'
 import { Route as CustomersIndexRouteImport } from './routes/customers/index'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
 import { Route as AgentsIndexRouteImport } from './routes/agents/index'
+import { Route as ModelsModelIdRouteImport } from './routes/models/$modelId'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers/$customerId'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { Route as AnalyticsAgentsAgentIdRouteImport } from './routes/analytics/agents/$agentId'
@@ -36,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModelsIndexRoute = ModelsIndexRouteImport.update({
+  id: '/models/',
+  path: '/models/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CustomersIndexRoute = CustomersIndexRouteImport.update({
   id: '/customers/',
   path: '/customers/',
@@ -50,6 +57,11 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AgentsRouteRoute,
+} as any)
+const ModelsModelIdRoute = ModelsModelIdRouteImport.update({
+  id: '/models/$modelId',
+  path: '/models/$modelId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CustomersCustomerIdRoute = CustomersCustomerIdRouteImport.update({
   id: '/customers/$customerId',
@@ -93,18 +105,22 @@ export interface FileRoutesByFullPath {
   '/agents': typeof AgentsRouteRouteWithChildren
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/models/$modelId': typeof ModelsModelIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/models': typeof ModelsIndexRoute
   '/analytics/agents/$agentId': typeof AnalyticsAgentsAgentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/models/$modelId': typeof ModelsModelIdRoute
   '/agents': typeof AgentsIndexRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/models': typeof ModelsIndexRoute
   '/analytics/agents/$agentId': typeof AnalyticsAgentsAgentIdRoute
 }
 export interface FileRoutesById {
@@ -113,9 +129,11 @@ export interface FileRoutesById {
   '/agents': typeof AgentsRouteRouteWithChildren
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/models/$modelId': typeof ModelsModelIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/analytics/': typeof AnalyticsIndexRoute
   '/customers/': typeof CustomersIndexRoute
+  '/models/': typeof ModelsIndexRoute
   '/analytics/agents/$agentId': typeof AnalyticsAgentsAgentIdRoute
 }
 export interface FileRouteTypes {
@@ -125,18 +143,22 @@ export interface FileRouteTypes {
     | '/agents'
     | '/agents/$agentId'
     | '/customers/$customerId'
+    | '/models/$modelId'
     | '/agents/'
     | '/analytics'
     | '/customers'
+    | '/models'
     | '/analytics/agents/$agentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/agents/$agentId'
     | '/customers/$customerId'
+    | '/models/$modelId'
     | '/agents'
     | '/analytics'
     | '/customers'
+    | '/models'
     | '/analytics/agents/$agentId'
   id:
     | '__root__'
@@ -144,9 +166,11 @@ export interface FileRouteTypes {
     | '/agents'
     | '/agents/$agentId'
     | '/customers/$customerId'
+    | '/models/$modelId'
     | '/agents/'
     | '/analytics/'
     | '/customers/'
+    | '/models/'
     | '/analytics/agents/$agentId'
   fileRoutesById: FileRoutesById
 }
@@ -154,8 +178,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRouteRoute: typeof AgentsRouteRouteWithChildren
   CustomersCustomerIdRoute: typeof CustomersCustomerIdRoute
+  ModelsModelIdRoute: typeof ModelsModelIdRoute
   AnalyticsIndexRoute: typeof AnalyticsIndexRoute
   CustomersIndexRoute: typeof CustomersIndexRoute
+  ModelsIndexRoute: typeof ModelsIndexRoute
   AnalyticsAgentsAgentIdRoute: typeof AnalyticsAgentsAgentIdRoute
 }
 export interface FileServerRoutesByFullPath {
@@ -221,6 +247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/models/': {
+      id: '/models/'
+      path: '/models'
+      fullPath: '/models'
+      preLoaderRoute: typeof ModelsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/customers/': {
       id: '/customers/'
       path: '/customers'
@@ -241,6 +274,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/agents/'
       preLoaderRoute: typeof AgentsIndexRouteImport
       parentRoute: typeof AgentsRouteRoute
+    }
+    '/models/$modelId': {
+      id: '/models/$modelId'
+      path: '/models/$modelId'
+      fullPath: '/models/$modelId'
+      preLoaderRoute: typeof ModelsModelIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/customers/$customerId': {
       id: '/customers/$customerId'
@@ -316,8 +356,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRouteRoute: AgentsRouteRouteWithChildren,
   CustomersCustomerIdRoute: CustomersCustomerIdRoute,
+  ModelsModelIdRoute: ModelsModelIdRoute,
   AnalyticsIndexRoute: AnalyticsIndexRoute,
   CustomersIndexRoute: CustomersIndexRoute,
+  ModelsIndexRoute: ModelsIndexRoute,
   AnalyticsAgentsAgentIdRoute: AnalyticsAgentsAgentIdRoute,
 }
 export const routeTree = rootRouteImport
