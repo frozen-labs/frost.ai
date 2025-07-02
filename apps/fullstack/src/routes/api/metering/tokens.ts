@@ -1,11 +1,13 @@
 import { json } from "@tanstack/react-start";
 import { createServerFileRoute } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { agentRepository } from "~/lib/agents/agents.repo";
+import { customerRepository } from "~/lib/customers/customer.repo";
 import { tokenTrackingService } from "~/lib/metering/tokens/token-tracking.service";
 const trackingSchema = z.object({
-  customerId: z.string().uuid(),
-  agentId: z.string().uuid(),
-  modelId: z.string(),
+  customerSlug: z.string().min(1),
+  agentSlug: z.string().min(1),
+  modelSlug: z.string().min(1),
   inputTokens: z.number().int().min(0),
   outputTokens: z.number().int().min(0),
 });
@@ -16,9 +18,28 @@ export const ServerRoute = createServerFileRoute(
   POST: async ({ request }) => {
     try {
       const body = await request.json();
-      const data = trackingSchema.parse(body);
+      const { customerSlug, agentSlug, modelSlug, inputTokens, outputTokens } =
+        trackingSchema.parse(body);
 
-      const usageId = await tokenTrackingService.trackUsage(data);
+      // Find customer by slug
+      const customer = await customerRepository.findBySlug(customerSlug);
+      if (!customer) {
+        return json({ error: "Customer not found" }, { status: 404 });
+      }
+
+      // Find agent by slug
+      const agent = await agentRepository.findBySlug(agentSlug);
+      if (!agent) {
+        return json({ error: "Agent not found" }, { status: 404 });
+      }
+
+      const usageId = await tokenTrackingService.trackUsage({
+        customerId: customer.id,
+        agentId: agent.id,
+        modelId: modelSlug,
+        inputTokens,
+        outputTokens,
+      });
 
       return json({ id: usageId }, { status: 201 });
     } catch (error) {

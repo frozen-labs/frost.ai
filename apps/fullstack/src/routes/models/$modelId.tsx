@@ -27,7 +27,7 @@ export const Route = createFileRoute("/models/$modelId")({
 });
 
 const formSchema = z.object({
-  modelIdentifier: z.string().min(1, "Model identifier is required"),
+  modelSlug: z.string().min(1, "Model slug is required"),
   inputCostPer1MTokens: z.number().min(0, "Input cost must be positive"),
   outputCostPer1MTokens: z.number().min(0, "Output cost must be positive"),
 });
@@ -42,7 +42,7 @@ function ModelFormPage() {
 
   const form = useForm({
     defaultValues: {
-      modelIdentifier: model?.slug || "",
+      modelSlug: model?.slug || "",
       inputCostPer1MTokens: model ? model.inputCostPer1MTokensCents / 100 : 0,
       outputCostPer1MTokens: model ? model.outputCostPer1MTokensCents / 100 : 0,
     },
@@ -54,7 +54,7 @@ function ModelFormPage() {
         await saveModel({
           data: {
             modelId,
-            slug: value.modelIdentifier,
+            slug: value.modelSlug,
             inputCostPer1MTokens: value.inputCostPer1MTokens,
             outputCostPer1MTokens: value.outputCostPer1MTokens,
           },
@@ -106,10 +106,10 @@ function ModelFormPage() {
             }}
             className="space-y-6"
           >
-            <form.Field name="modelIdentifier">
+            <form.Field name="modelSlug">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor={field.name}>Model Identifier</Label>
+                  <Label htmlFor={field.name}>Model Slug</Label>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -124,7 +124,7 @@ function ModelFormPage() {
                     </p>
                   )}
                   <p className="text-sm text-muted-foreground">
-                    This is the unique model identifier used in the database
+                    This is the unique model slug used in API calls
                   </p>
                 </div>
               )}

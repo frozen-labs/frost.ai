@@ -22,21 +22,9 @@ import {
 } from "~/components/ui/card";
 import { customerRepository } from "~/lib/customers/customer.repo";
 
-type CustomerWithDescription = {
-  id: string;
-  name: string;
-  description?: string;
-  metadata?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
 const getCustomers = createServerFn({ method: "GET" }).handler(async () => {
   const customers = await customerRepository.findAll();
-  return customers.map((customer) => ({
-    ...customer,
-    description: (customer.metadata as any)?.description || "",
-  })) as CustomerWithDescription[];
+  return customers;
 });
 
 const deleteCustomer = createServerFn({ method: "POST" })
@@ -88,9 +76,7 @@ function CustomersPage() {
                 <div>
                   <CardTitle>{customer.name}</CardTitle>
                   <CardDescription className="mt-2">
-                    ID: {customer.id}
-                    {(customer as CustomerWithDescription).description &&
-                      ` | ${(customer as CustomerWithDescription).description}`}
+                    Slug: {customer.slug}
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">

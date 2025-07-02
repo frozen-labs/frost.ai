@@ -53,13 +53,11 @@ export const signalRepository = {
       .orderBy(desc(agentSignals.createdAt));
   },
 
-  async findByFriendlyIdentifier(
-    friendlyIdentifier: string
-  ): Promise<AgentSignal | null> {
+  async findBySlug(slug: string): Promise<AgentSignal | null> {
     const [signal] = await db
       .select()
       .from(agentSignals)
-      .where(eq(agentSignals.slug, friendlyIdentifier))
+      .where(eq(agentSignals.slug, slug))
       .limit(1);
     return signal || null;
   },

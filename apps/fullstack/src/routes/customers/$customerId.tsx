@@ -28,6 +28,7 @@ export const Route = createFileRoute("/customers/$customerId")({
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  customerSlug: z.string().min(1, "Slug is required"),
 });
 
 function CustomerFormPage() {
@@ -41,6 +42,7 @@ function CustomerFormPage() {
   const form = useForm({
     defaultValues: {
       name: customer?.name || "",
+      customerSlug: customer?.slug || "",
     },
     validators: {
       onChange: formSchema,
@@ -51,6 +53,7 @@ function CustomerFormPage() {
           data: {
             customerId,
             name: value.name,
+            slug: value.customerSlug,
           },
         });
 
@@ -70,6 +73,11 @@ function CustomerFormPage() {
       }
     },
   });
+
+  // Compute slug from name
+  const computeSlug = (inputName: string) => {
+    return inputName.toLowerCase().replace(/\s+/g, "-");
+  };
 
   const handleCancel = () => {
     navigate({ to: "/customers" });
@@ -123,6 +131,40 @@ function CustomerFormPage() {
               )}
             </form.Field>
 
+            <form.Subscribe
+              selector={(state) => state.values.name}
+              children={(name) => {
+                const computedSlug = computeSlug(name);
+                return (
+                  <form.Field name="customerSlug">
+                    {(field) => {
+                      // Update the field value when the computed slug changes
+                      if (field.state.value !== computedSlug) {
+                        field.handleChange(computedSlug);
+                      }
+                      return (
+                        <div className="space-y-2">
+                          <Label htmlFor={field.name}>Customer Slug</Label>
+                          <p className="text-sm text-muted-foreground">
+                            This slug is used to identify the customer in the
+                            API. It's automatically computed from the customer
+                            name.
+                          </p>
+                          <Input
+                            id={field.name}
+                            name={field.name}
+                            value={computedSlug}
+                            readOnly
+                            className="bg-muted cursor-text"
+                          />
+                        </div>
+                      );
+                    }}
+                  </form.Field>
+                );
+              }}
+            />
+
             {!isNewCustomer && customer && (
               <div className="space-y-2">
                 <Label>Customer ID</Label>
@@ -130,7 +172,7 @@ function CustomerFormPage() {
                   {customer.id}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  This is the unique customer identifier
+                  This is the unique customer ID
                 </p>
               </div>
             )}

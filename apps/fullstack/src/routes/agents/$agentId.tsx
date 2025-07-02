@@ -47,7 +47,7 @@ type SignalCardProps = {
   onSave: (signal: Partial<SignalForm>) => void;
   onCancel: () => void;
   onRemove: () => void;
-  computeFriendlyIdentifier: (name: string) => string;
+  computeSlug: (name: string) => string;
 };
 
 function SignalCard({
@@ -57,7 +57,7 @@ function SignalCard({
   onSave,
   onCancel,
   onRemove,
-  computeFriendlyIdentifier,
+  computeSlug,
 }: SignalCardProps) {
   const [editName, setEditName] = useState(signal.name);
   const [editPriceRaw, setEditPriceRaw] = useState("");
@@ -80,7 +80,7 @@ function SignalCard({
     const cents = parseCurrencyInput(editPriceRaw);
     onSave({
       name: editName,
-      slug: computeFriendlyIdentifier(editName),
+      slug: computeSlug(editName),
       pricePerCallCents: cents,
     });
   };
@@ -172,7 +172,7 @@ function SignalCard({
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  friendlyAgentIdentifier: z.string().min(1, "Identifier is required"),
+  agentSlug: z.string().min(1, "Slug is required"),
 });
 
 function AgentFormPage() {
@@ -210,7 +210,7 @@ function AgentFormPage() {
   const form = useForm({
     defaultValues: {
       name: agent?.name || "",
-      friendlyAgentIdentifier: agent?.slug || "",
+      agentSlug: agent?.slug || "",
     },
     validators: {
       onChange: formSchema,
@@ -221,7 +221,7 @@ function AgentFormPage() {
           data: {
             agentId,
             name: value.name,
-            friendlyAgentIdentifier: value.friendlyAgentIdentifier,
+            slug: value.agentSlug,
             signals,
           },
         });
@@ -241,7 +241,7 @@ function AgentFormPage() {
     },
   });
 
-  // Compute friendly agent identifier from name
+  // Compute slug from name
   const computeSlug = (inputName: string) => {
     return inputName.toLowerCase().replace(/\s+/g, "-");
   };
@@ -346,26 +346,26 @@ function AgentFormPage() {
             <form.Subscribe
               selector={(state) => state.values.name}
               children={(name) => {
-                const computedIdentifier = computeSlug(name);
+                const computedSlug = computeSlug(name);
                 return (
-                  <form.Field name="friendlyAgentIdentifier">
+                  <form.Field name="agentSlug">
                     {(field) => {
-                      // Update the field value when the computed identifier changes
-                      if (field.state.value !== computedIdentifier) {
-                        field.handleChange(computedIdentifier);
+                      // Update the field value when the computed slug changes
+                      if (field.state.value !== computedSlug) {
+                        field.handleChange(computedSlug);
                       }
                       return (
                         <div className="space-y-2">
-                          <Label htmlFor={field.name}>Agent Identifier</Label>
+                          <Label htmlFor={field.name}>Agent Slug</Label>
                           <p className="text-sm text-muted-foreground">
-                            This identifier is used to identify the agent in the
+                            This slug is used to identify the agent in the
                             API. It's automatically computed from the agent
                             name.
                           </p>
                           <Input
                             id={field.name}
                             name={field.name}
-                            value={computedIdentifier}
+                            value={computedSlug}
                             readOnly
                             className="bg-muted cursor-text"
                           />
@@ -401,7 +401,7 @@ function AgentFormPage() {
                       }
                       onCancel={handleCancelEdit}
                       onRemove={() => handleRemoveSignal(index)}
-                      computeFriendlyIdentifier={computeSlug}
+                      computeSlug={computeSlug}
                     />
                   ))}
                 </div>

@@ -18,7 +18,7 @@ export const getModel = createServerFn({ method: "GET" })
 
 const saveModelSchema = z.object({
   modelId: z.string(),
-  slug: z.string().min(1, "Model identifier is required"),
+  slug: z.string().min(1, "Model slug is required"),
   inputCostPer1MTokens: z.number().min(0, "Input cost must be positive"),
   outputCostPer1MTokens: z.number().min(0, "Output cost must be positive"),
 });

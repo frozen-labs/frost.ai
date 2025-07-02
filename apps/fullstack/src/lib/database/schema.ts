@@ -17,6 +17,7 @@ export const customers = pgTable(
     id: pgUuid("id")
       .primaryKey()
       .$defaultFn(() => uuidV7()),
+    slug: varchar("slug", { length: 255 }).notNull().unique(),
     name: varchar("name", { length: 255 }).notNull(),
     metadata: jsonb("metadata").$type<Record<string, any>>(),
     createdAt: timestamp("created_at", { withTimezone: true })

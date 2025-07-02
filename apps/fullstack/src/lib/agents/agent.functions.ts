@@ -25,7 +25,7 @@ export const getAgent = createServerFn({ method: "GET" })
 const saveAgentSchema = z.object({
   agentId: z.string(),
   name: z.string().min(1, "Name is required"),
-  friendlyAgentIdentifier: z.string().min(1, "Identifier is required"),
+  slug: z.string().min(1, "Slug is required"),
   metadata: z.object({}).optional(),
   signals: z
     .array(
@@ -44,7 +44,7 @@ export const saveAgent = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const agentData: NewAgent = {
       name: data.name,
-      slug: data.friendlyAgentIdentifier,
+      slug: data.slug,
       metadata: data.metadata,
     };
 

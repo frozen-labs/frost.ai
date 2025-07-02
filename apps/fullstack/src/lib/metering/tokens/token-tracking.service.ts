@@ -12,11 +12,11 @@ export interface TokenTrackingInput {
 
 export class TokenTrackingService {
   async trackUsage(input: TokenTrackingInput): Promise<string> {
-    // Find the model by identifier
+    // Find the model by slug
     const model = await validModelsRepo.findBySlug(input.modelId);
 
     if (!model) {
-      throw new Error(`Model with identifier ${input.modelId} not found`);
+      throw new Error(`Model with slug ${input.modelId} not found`);
     }
 
     // Calculate costs in cents (model costs are already in cents per 1M tokens)
