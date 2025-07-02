@@ -29,34 +29,28 @@ interface AgentProfitabilityDashboardProps {
   customerId?: string;
 }
 
-interface KPIBoxProps {
+const KPIBox = ({ title, value, subtitle, isNegative }: {
   title: string;
   value: string | number;
   subtitle?: string;
   isNegative?: boolean;
-}
-
-function KPIBox({ title, value, subtitle, isNegative }: KPIBoxProps) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div
-          className={`text-2xl font-bold ${isNegative ? "text-red-600" : ""}`}
-        >
-          {value}
-        </div>
-        {subtitle && (
-          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+}) => (
+  <Card>
+    <CardHeader className="pb-2">
+      <CardTitle className="text-sm font-medium text-muted-foreground">
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className={`text-2xl font-bold ${isNegative ? "text-red-600" : ""}`}>
+        {value}
+      </div>
+      {subtitle && (
+        <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+      )}
+    </CardContent>
+  </Card>
+);
 
 export function AgentProfitabilityDashboard({
   agentId,
@@ -78,13 +72,6 @@ export function AgentProfitabilityDashboard({
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log(
-        "Fetching data for agentId:",
-        agentId,
-        "customerId:",
-        customerId
-      );
-
       const profitability = await getAgentProfitabilitySummary({
         data: {
           agentId,
@@ -95,8 +82,6 @@ export function AgentProfitabilityDashboard({
           },
         },
       });
-
-      console.log("Profitability data:", profitability);
       setData(profitability);
     } catch (error) {
       console.error("Error fetching profitability data:", error);
@@ -118,8 +103,6 @@ export function AgentProfitabilityDashboard({
           getAgentsList(),
           getCustomersList(),
         ]);
-        console.log("Loaded agents:", agentsList);
-        console.log("Loaded customers:", customersList);
         setAgents(agentsList);
         setCustomers(customersList);
       } catch (error) {
@@ -167,12 +150,7 @@ export function AgentProfitabilityDashboard({
       <Card>
         <CardHeader>
           <CardTitle>
-            {!agentId
-              ? "All Agents"
-              : agentId && !customerId
-              ? "Agent"
-              : "Agent & Customer"}{" "}
-            Profitability
+            {!agentId ? "All Agents" : !customerId ? "Agent" : "Agent & Customer"} Profitability
           </CardTitle>
         </CardHeader>
         <CardContent>
