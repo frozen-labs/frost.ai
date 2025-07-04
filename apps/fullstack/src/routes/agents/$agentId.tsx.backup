@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { formatCurrencyInput, parseCurrencyInput, formatCurrency } from "~/lib/utils/currency";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { BILLING_CYCLES, type BillingCycle, type Agent, type AgentSignal } from "~/lib/database/types";
+import { BILLING_CYCLES, type BillingCycle } from "~/lib/database";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { getAgent, saveAgent } from "~/lib/agents/agent.functions";
+import { AgentSignal, type Agent } from "~/lib/database";
 
 export const Route = createFileRoute("/agents/$agentId")({
   loader: async ({ params }) => {
@@ -61,7 +62,7 @@ type SignalForm = {
 type CreditSignalForm = {
   id?: string;
   name: string;
-  slug: string;
+  friendlySignalIdentifier: string;
   creditsPerCallCents: number;
 };
 
@@ -355,7 +356,7 @@ function CreditSignalCard({
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  slug: z.string().min(1, "Slug is required"),
+  agentSlug: z.string().min(1, "Slug is required"),
 });
 
 function AgentFormPage() {
@@ -376,11 +377,6 @@ function AgentFormPage() {
   const [setupFeeCents, setSetupFeeCents] = useState(0);
   const [setupFeeEnabled, setSetupFeeEnabled] = useState(false);
   const [platformFeeRaw, setPlatformFeeRaw] = useState("");
-  
-  // Compute slug from name
-  const computeSlug = (name: string) => {
-    return name.toLowerCase().replace(/\s+/g, "-");
-  };
   const [platformFeeCents, setPlatformFeeCents] = useState(0);
   const [platformFeeEnabled, setPlatformFeeEnabled] = useState(false);
   const [platformFeeBillingCycle, setPlatformFeeBillingCycle] = useState<BillingCycle>(BILLING_CYCLES.MONTHLY);
@@ -444,43 +440,42 @@ function AgentFormPage() {
       // Set restricted agent state
       setIsRestrictedAgent(Boolean(agent.setupFeeEnabled) || Boolean(agent.platformFeeEnabled));
       
-      // Load signals by type from the unified signals array
+      // Load usage signals
       if (agent.signals) {
-        // Filter usage signals
-        const usageSignals = agent.signals
-          .filter((signal: AgentSignal) => signal.signalType === 'usage')
-          .map((signal: AgentSignal) => ({
-            id: signal.id,
-            name: signal.name,
-            slug: signal.slug,
-            pricePerCallCents: signal.pricePerCallCents || 0,
-          }));
-        setSignals(usageSignals);
-        
-        // Filter outcome signals
-        const outcomeSignals = agent.signals
-          .filter((signal: AgentSignal) => signal.signalType === 'outcome')
-          .map((signal: AgentSignal) => ({
-            id: signal.id,
-            name: signal.name,
-            slug: signal.slug,
-            pricePerCallCents: signal.outcomePriceCents || 0,
-          }));
-        setOutcomeSignals(outcomeSignals);
-        
-        // Filter credit signals
-        const creditSignals = agent.signals
-          .filter((signal: AgentSignal) => signal.signalType === 'credit')
-          .map((signal: AgentSignal) => ({
-            id: signal.id,
-            name: signal.name,
-            slug: signal.slug,
-            creditsPerCallCents: signal.creditsPerCallCents || 0,
-          }));
-        setCreditSignals(creditSignals);
+        const existingSignals = agent.signals.map((signal: AgentSignal) => ({
+          id: signal.id,
+          name: signal.name,
+          slug: signal.slug,
+          pricePerCallCents: signal.pricePerCallCents || 0,
+        }));
+        setSignals(existingSignals);
       } else {
         setSignals([]);
+      }
+      
+      // Load outcome signals
+      if (agent.outcomeSignals) {
+        const existingOutcomeSignals = agent.outcomeSignals.map((signal: AgentSignal) => ({
+          id: signal.id,
+          name: signal.name,
+          slug: signal.slug,
+          pricePerCallCents: signal.outcomePriceCents || 0,
+        }));
+        setOutcomeSignals(existingOutcomeSignals);
+      } else {
         setOutcomeSignals([]);
+      }
+      
+      // Load credit signals
+      if (agent.creditSignals) {
+        const existingCreditSignals = agent.creditSignals.map((signal: AgentSignal) => ({
+          id: signal.id,
+          name: signal.name,
+          slug: signal.slug,
+          creditsPerCallCents: signal.creditsPerCallCents || 0,
+        }));
+        setCreditSignals(existingCreditSignals);
+      } else {
         setCreditSignals([]);
       }
     } else {
@@ -507,7 +502,7 @@ function AgentFormPage() {
   const form = useForm({
     defaultValues: {
       name: agent?.name || "",
-      slug: agent?.slug || "",
+      agentSlug: agent?.agentSlug || "",
     },
     validators: {
       onChange: formSchema,
@@ -518,7 +513,7 @@ function AgentFormPage() {
           data: {
             agentId,
             name: value.name,
-            slug: value.slug,
+            agentSlug: value.agentSlug,
             // Fee fields
             setupFeeEnabled,
             setupFeeCents,
@@ -625,7 +620,7 @@ function AgentFormPage() {
     if (newCreditSignalName.trim()) {
       // Parse the raw string into cents when adding the signal
       const cents = parseCurrencyInput(newCreditSignalCreditsRaw);
-      const newSignal: CreditSignalForm = {
+      const newSignal = {
         name: newCreditSignalName,
         slug: computeSlug(newCreditSignalName),
         creditsPerCallCents: cents,
@@ -715,7 +710,7 @@ function AgentFormPage() {
               children={(name) => {
                 const computedSlug = computeSlug(name);
                 return (
-                  <form.Field name="slug">
+                  <form.Field name="agentSlug">
                     {(field) => {
                       // Update the field value when the computed identifier changes
                       if (field.state.value !== computedSlug) {

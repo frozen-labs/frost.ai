@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AgentProfitabilityDashboard } from "./_components/agent-profitability-dashboard";
+import { AgentProfitabilityDashboard } from "./-components/agent-profitability-dashboard";
 
 export const Route = createFileRoute("/analytics/")({
   component: AgentProfitabilityPage,

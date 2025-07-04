@@ -46,13 +46,11 @@ import {
   getAllAgents, 
   getCreditSignals,
   linkAgentToCustomer,
-  unlinkAgentFromCustomer,
   linkAgentWithFees,
-  createCreditAllocation,
   updateCreditAllocation,
   removeCreditAllocation
-} from "~/lib/customers/customer.functions";
-import { type Customer, type Agent } from "~/lib/database/types";
+} from "~/lib/customers";
+import { type Customer } from "~/lib/database";
 import { formatCurrencyInput, parseCurrencyInput } from "~/lib/utils/currency";
 
 export const Route = createFileRoute("/customers/$customerId")({
@@ -81,19 +79,8 @@ const formSchema = z.object({
   customerSlug: z.string().min(1, "Slug is required"),
 });
 
-type CreditSignalAgent = {
-  agentId: string;
-  agentName: string;
-  creditSignals: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    creditsPerCallCents: number;
-  }>;
-};
-
 // Create flattened agent+signal combinations for search
-const createAgentSignalOptions = (creditSignals: CreditSignalAgent[]) => {
+const createAgentSignalOptions = (creditSignals: any[]) => {
   const options: Array<{
     id: string;
     agentId: string;
@@ -105,14 +92,14 @@ const createAgentSignalOptions = (creditSignals: CreditSignalAgent[]) => {
   }> = [];
 
   creditSignals.forEach((agent) => {
-    agent.creditSignals.forEach((signal) => {
+    agent.creditSignals.forEach((signal: any) => {
       options.push({
         id: `${agent.agentId}-${signal.id}`,
         agentId: agent.agentId,
         agentName: agent.agentName,
         signalId: signal.id,
         signalName: signal.name,
-        creditsPerCall: signal.creditsPerCallCents,
+        creditsPerCall: signal.creditsPerCall,
         searchText: `${agent.agentName} ${signal.name}`.toLowerCase(),
       });
     });
@@ -131,28 +118,13 @@ type CreditAllocation = {
   isEditing?: boolean;
 };
 
-type CustomerWithAllocations = Customer & {
-  creditAllocations: Array<{
-    id: string;
-    agentId: string;
-    agentName: string;
-    signalId: string;
-    signalName: string;
-    creditsCents: number;
-  }>;
-  linkedAgentIds: string[];
-};
-
 function CustomerFormPage() {
   const navigate = useNavigate();
   const { customerId } = Route.useParams();
   const loaderData = Route.useLoaderData();
-  const customerData = loaderData.customerData as CustomerWithAllocations | null;
-  const customer = customerData as Customer | null;
-  const allAgents = ((loaderData.allAgents || []) as Agent[]).map(agent => ({
-    ...agent,
-    isRestricted: Boolean(agent.setupFeeEnabled) || Boolean(agent.platformFeeEnabled)
-  }));
+  const customerData = loaderData.customerData;
+  const customer = customerData?.customer as Customer | null;
+  const allAgents = loaderData.allAgents || [];
   const creditSignals = loaderData.creditSignals || [];
 
   const isNewCustomer = customerId === "new";
@@ -162,7 +134,7 @@ function CustomerFormPage() {
     CreditAllocation[]
   >(() => {
     if (customerData?.creditAllocations) {
-      return customerData.creditAllocations.map((alloc) => ({
+      return customerData.creditAllocations.map(alloc => ({
         id: alloc.id,
         agentId: alloc.agentId,
         agentName: alloc.agentName,
@@ -248,6 +220,7 @@ function CustomerFormPage() {
                 data: {
                   customerId: targetCustomerId,
                   agentId,
+                  link: true,
                 },
               });
             }
@@ -255,7 +228,7 @@ function CustomerFormPage() {
           
           // Save all credit allocations
           for (const allocation of creditAllocations) {
-            await createCreditAllocation({
+            await updateCreditAllocation({
               data: {
                 customerId: targetCustomerId,
                 agentId: allocation.agentId,
@@ -313,7 +286,7 @@ function CustomerFormPage() {
 
     // For existing customers, save immediately
     try {
-      await createCreditAllocation({
+      await updateCreditAllocation({
         data: {
           customerId,
           agentId: option.agentId,
@@ -325,10 +298,10 @@ function CustomerFormPage() {
       // Reload data
       const updatedData = await getCustomer({
         data: { customerId },
-      }) as CustomerWithAllocations | null;
+      });
       
       if (updatedData?.creditAllocations) {
-        setCreditAllocations(updatedData.creditAllocations.map((alloc) => ({
+        setCreditAllocations(updatedData.creditAllocations.map(alloc => ({
           ...alloc,
           isEditing: false,
         })));
@@ -361,7 +334,9 @@ function CustomerFormPage() {
       try {
         await updateCreditAllocation({
           data: {
-            allocationId: allocation.id,
+            customerId,
+            agentId: allocation.agentId,
+            signalId: allocation.signalId,
             creditsCents,
           },
         });
@@ -474,6 +449,7 @@ function CustomerFormPage() {
             data: {
               customerId,
               agentId,
+              link: true,
             },
           });
           toast.success("Agent linked");
@@ -494,10 +470,11 @@ function CustomerFormPage() {
     // For existing customers, save immediately
     if (!isNewCustomer) {
       try {
-        await unlinkAgentFromCustomer({
+        await linkAgentToCustomer({
           data: {
             customerId,
             agentId,
+            link: false,
           },
         });
         toast.success("Agent unlinked");
@@ -929,7 +906,7 @@ function CustomerFormPage() {
                               {option.agentName} ▸ {option.signalName}
                             </span>
                             <span className="text-sm text-muted-foreground ml-2">
-                              ({(option.creditsPerCall / 100).toFixed(2)} credits per usage)
+                              ({option.creditsPerCall} per usage)
                             </span>
                           </div>
                           <div className="flex items-center gap-2">

@@ -42,4 +42,8 @@ export const agentRepository = {
     const result = await db.delete(agents).where(eq(agents.id, id)).returning();
     return result.length > 0;
   },
+
+  isRestrictedAgent(agent: Agent): boolean {
+    return Boolean(agent.setupFeeEnabled) || Boolean(agent.platformFeeEnabled);
+  },
 };

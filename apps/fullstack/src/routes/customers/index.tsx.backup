@@ -12,18 +12,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '~/components/ui/alert-dialog'
+import { createServerFn } from '@tanstack/react-start'
+import { customerRepository } from '~/lib/customers/customers.repo'
 import { useState } from 'react'
-import { getCustomers, deleteCustomer } from '~/lib/customers/customer.functions'
+import { z } from 'zod'
 
 type CustomerWithDescription = {
   id: string
   name: string
-  slug: string
   description?: string
   metadata?: Record<string, any>
   createdAt: Date
   updatedAt: Date
 }
+
+const getCustomers = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const customers = await customerRepository.findAll()
+    return customers.map(customer => ({
+      ...customer,
+      description: (customer.metadata as any)?.description || ''
+    })) as CustomerWithDescription[]
+  })
+
+const deleteCustomer = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: z.string() }))
+  .handler(async ({ data }) => {
+    await customerRepository.delete(data.id)
+    return { success: true }
+  })
 
 export const Route = createFileRoute('/customers/')({
   loader: async () => {

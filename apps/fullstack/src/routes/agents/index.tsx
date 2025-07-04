@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -19,13 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { deleteAgent } from "~/lib/agents/agent.functions";
-import { agentRepository } from "~/lib/agents/agents.repo";
+import { deleteAgent, getAgents } from "~/lib/agents/agent.functions";
 import { type Agent } from "~/lib/database";
-
-const getAgents = createServerFn({ method: "GET" }).handler(async () => {
-  return await agentRepository.findAll();
-});
 
 export const Route = createFileRoute("/agents/")({
   loader: async () => {
@@ -71,22 +65,22 @@ function AgentsPage() {
       <div className="grid gap-4">
         {agents.map((agent: Agent) => {
           const metadata = agent.metadata as AgentMetadata | null;
+          const isRestricted = Boolean(agent.setupFeeEnabled) || Boolean(agent.platformFeeEnabled);
           return (
             <Card key={agent.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>{agent.name}</CardTitle>
-                    <CardDescription className="mt-2">
-                      Slug: {agent.slug}
-                      {metadata?.isRestricted && (
-                        <>
-                          {" | "}
-                          <span className="text-orange-600">
-                            Restricted Access
-                          </span>
-                        </>
+                    <div className="flex items-center gap-2">
+                      <CardTitle>{agent.name}</CardTitle>
+                      {isRestricted && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                          Restricted
+                        </span>
                       )}
+                    </div>
+                    <CardDescription className="mt-2">
+                    Slug: {agent.slug}
                     </CardDescription>
                     {metadata?.signals && metadata.signals.length > 0 && (
                       <div className="mt-4">

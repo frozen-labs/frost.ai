@@ -22,6 +22,7 @@ import { Route as CustomersCustomerIdRouteImport } from './routes/customers/$cus
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { ServerRoute as ApiHealthIndexServerRouteImport } from './routes/api/health/index'
 import { ServerRoute as ApiCustomersIndexServerRouteImport } from './routes/api/customers/index'
+import { ServerRoute as ApiSignalsTrackServerRouteImport } from './routes/api/signals/track'
 import { ServerRoute as ApiMeteringTokensServerRouteImport } from './routes/api/metering/tokens'
 import { ServerRoute as ApiMeteringSignalsServerRouteImport } from './routes/api/metering/signals'
 
@@ -80,6 +81,11 @@ const ApiHealthIndexServerRoute = ApiHealthIndexServerRouteImport.update({
 const ApiCustomersIndexServerRoute = ApiCustomersIndexServerRouteImport.update({
   id: '/api/customers/',
   path: '/api/customers/',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
+const ApiSignalsTrackServerRoute = ApiSignalsTrackServerRouteImport.update({
+  id: '/api/signals/track',
+  path: '/api/signals/track',
   getParentRoute: () => rootServerRouteImport,
 } as any)
 const ApiMeteringTokensServerRoute = ApiMeteringTokensServerRouteImport.update({
@@ -174,12 +180,14 @@ export interface RootRouteChildren {
 export interface FileServerRoutesByFullPath {
   '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
   '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
+  '/api/signals/track': typeof ApiSignalsTrackServerRoute
   '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
   '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
+  '/api/signals/track': typeof ApiSignalsTrackServerRoute
   '/api/customers': typeof ApiCustomersIndexServerRoute
   '/api/health': typeof ApiHealthIndexServerRoute
 }
@@ -187,6 +195,7 @@ export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
   '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
+  '/api/signals/track': typeof ApiSignalsTrackServerRoute
   '/api/customers/': typeof ApiCustomersIndexServerRoute
   '/api/health/': typeof ApiHealthIndexServerRoute
 }
@@ -195,18 +204,21 @@ export interface FileServerRouteTypes {
   fullPaths:
     | '/api/metering/signals'
     | '/api/metering/tokens'
+    | '/api/signals/track'
     | '/api/customers'
     | '/api/health'
   fileServerRoutesByTo: FileServerRoutesByTo
   to:
     | '/api/metering/signals'
     | '/api/metering/tokens'
+    | '/api/signals/track'
     | '/api/customers'
     | '/api/health'
   id:
     | '__root__'
     | '/api/metering/signals'
     | '/api/metering/tokens'
+    | '/api/signals/track'
     | '/api/customers/'
     | '/api/health/'
   fileServerRoutesById: FileServerRoutesById
@@ -214,6 +226,7 @@ export interface FileServerRouteTypes {
 export interface RootServerRouteChildren {
   ApiMeteringSignalsServerRoute: typeof ApiMeteringSignalsServerRoute
   ApiMeteringTokensServerRoute: typeof ApiMeteringTokensServerRoute
+  ApiSignalsTrackServerRoute: typeof ApiSignalsTrackServerRoute
   ApiCustomersIndexServerRoute: typeof ApiCustomersIndexServerRoute
   ApiHealthIndexServerRoute: typeof ApiHealthIndexServerRoute
 }
@@ -301,6 +314,13 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiCustomersIndexServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/signals/track': {
+      id: '/api/signals/track'
+      path: '/api/signals/track'
+      fullPath: '/api/signals/track'
+      preLoaderRoute: typeof ApiSignalsTrackServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/metering/tokens': {
       id: '/api/metering/tokens'
       path: '/api/metering/tokens'
@@ -347,6 +367,7 @@ export const routeTree = rootRouteImport
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiMeteringSignalsServerRoute: ApiMeteringSignalsServerRoute,
   ApiMeteringTokensServerRoute: ApiMeteringTokensServerRoute,
+  ApiSignalsTrackServerRoute: ApiSignalsTrackServerRoute,
   ApiCustomersIndexServerRoute: ApiCustomersIndexServerRoute,
   ApiHealthIndexServerRoute: ApiHealthIndexServerRoute,
 }
