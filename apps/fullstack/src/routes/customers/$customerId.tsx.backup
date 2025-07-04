@@ -46,13 +46,11 @@ import {
   getAllAgents, 
   getCreditSignals,
   linkAgentToCustomer,
-  unlinkAgentFromCustomer,
   linkAgentWithFees,
-  createCreditAllocation,
   updateCreditAllocation,
   removeCreditAllocation
-} from "~/lib/customers/customer.functions";
-import { type Customer, type Agent } from "~/lib/database/types";
+} from "~/lib/customers";
+import { type Customer } from "~/lib/database";
 import { formatCurrencyInput, parseCurrencyInput } from "~/lib/utils/currency";
 
 export const Route = createFileRoute("/customers/$customerId")({
@@ -81,19 +79,8 @@ const formSchema = z.object({
   customerSlug: z.string().min(1, "Slug is required"),
 });
 
-type CreditSignalAgent = {
-  agentId: string;
-  agentName: string;
-  creditSignals: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    creditsPerCallCents: number;
-  }>;
-};
-
 // Create flattened agent+signal combinations for search
-const createAgentSignalOptions = (creditSignals: CreditSignalAgent[]) => {
+const createAgentSignalOptions = (creditSignals: any[]) => {
   const options: Array<{
     id: string;
     agentId: string;
@@ -105,14 +92,14 @@ const createAgentSignalOptions = (creditSignals: CreditSignalAgent[]) => {
   }> = [];
 
   creditSignals.forEach((agent) => {
-    agent.creditSignals.forEach((signal) => {
+    agent.creditSignals.forEach((signal: any) => {
       options.push({
         id: `${agent.agentId}-${signal.id}`,
         agentId: agent.agentId,
         agentName: agent.agentName,
         signalId: signal.id,
         signalName: signal.name,
-        creditsPerCall: signal.creditsPerCallCents,
+        creditsPerCall: signal.creditsPerCall,
         searchText: `${agent.agentName} ${signal.name}`.toLowerCase(),
       });
     });
@@ -131,28 +118,13 @@ type CreditAllocation = {
   isEditing?: boolean;
 };
 
-type CustomerWithAllocations = Customer & {
-  creditAllocations: Array<{
-    id: string;
-    agentId: string;
-    agentName: string;
-    signalId: string;
-    signalName: string;
-    creditsCents: number;
-  }>;
-  linkedAgentIds: string[];
-};
-
 function CustomerFormPage() {
   const navigate = useNavigate();
   const { customerId } = Route.useParams();
   const loaderData = Route.useLoaderData();
-  const customerData = loaderData.customerData as CustomerWithAllocations | null;
-  const customer = customerData as Customer | null;
-  const allAgents = ((loaderData.allAgents || []) as Agent[]).map(agent => ({
-    ...agent,
-    isRestricted: Boolean(agent.setupFeeEnabled) || Boolean(agent.platformFeeEnabled)
-  }));
+  const customerData = loaderData.customerData;
+  const customer = customerData?.customer as Customer | null;
+  const allAgents = loaderData.allAgents || [];
   const creditSignals = loaderData.creditSignals || [];
 
   const isNewCustomer = customerId === "new";
@@ -162,7 +134,7 @@ function CustomerFormPage() {
     CreditAllocation[]
   >(() => {
     if (customerData?.creditAllocations) {
-      return customerData.creditAllocations.map((alloc) => ({
+      return customerData.creditAllocations.map(alloc => ({
         id: alloc.id,
         agentId: alloc.agentId,
         agentName: alloc.agentName,
@@ -248,6 +220,7 @@ function CustomerFormPage() {
                 data: {
                   customerId: targetCustomerId,
                   agentId,
+                  link: true,
                 },
               });
             }
@@ -255,7 +228,7 @@ function CustomerFormPage() {
           
           // Save all credit allocations
           for (const allocation of creditAllocations) {
-            await createCreditAllocation({
+            await updateCreditAllocation({
               data: {
                 customerId: targetCustomerId,
                 agentId: allocation.agentId,
@@ -290,11 +263,10 @@ function CustomerFormPage() {
     navigate({ to: "/customers" });
   };
 
-  // Handle adding new allocation (enhanced to optionally handle purchases)
+  // Handle adding new allocation
   const handleAddAllocation = async (
     option: (typeof agentSignalOptions)[0],
-    credits: number,
-    price?: number
+    credits: number
   ) => {
     // For new customers, just add to local state
     if (isNewCustomer) {
@@ -314,37 +286,31 @@ function CustomerFormPage() {
 
     // For existing customers, save immediately
     try {
-      await createCreditAllocation({
+      await updateCreditAllocation({
         data: {
           customerId,
           agentId: option.agentId,
           signalId: option.signalId,
           creditsCents: credits,
-          priceTotal: price,
         },
       });
 
       // Reload data
       const updatedData = await getCustomer({
         data: { customerId },
-      }) as CustomerWithAllocations | null;
+      });
       
       if (updatedData?.creditAllocations) {
-        setCreditAllocations(updatedData.creditAllocations.map((alloc) => ({
+        setCreditAllocations(updatedData.creditAllocations.map(alloc => ({
           ...alloc,
           isEditing: false,
         })));
       }
       
       setSearchTerm("");
-      
-      if (price && price > 0) {
-        toast.success(`Purchased ${(credits / 100).toFixed(2)} credits for $${price.toFixed(2)}`);
-      } else {
-        toast.success("Credit allocation added");
-      }
+      toast.success("Credit allocation added");
     } catch (error) {
-      toast.error(price && price > 0 ? "Failed to purchase credits" : "Failed to add credit allocation");
+      toast.error("Failed to add credit allocation");
       console.error(error);
     }
   };
@@ -368,7 +334,9 @@ function CustomerFormPage() {
       try {
         await updateCreditAllocation({
           data: {
-            allocationId: allocation.id,
+            customerId,
+            agentId: allocation.agentId,
+            signalId: allocation.signalId,
             creditsCents,
           },
         });
@@ -481,6 +449,7 @@ function CustomerFormPage() {
             data: {
               customerId,
               agentId,
+              link: true,
             },
           });
           toast.success("Agent linked");
@@ -501,10 +470,11 @@ function CustomerFormPage() {
     // For existing customers, save immediately
     if (!isNewCustomer) {
       try {
-        await unlinkAgentFromCustomer({
+        await linkAgentToCustomer({
           data: {
             customerId,
             agentId,
+            link: false,
           },
         });
         toast.success("Agent unlinked");
@@ -936,7 +906,7 @@ function CustomerFormPage() {
                               {option.agentName} ▸ {option.signalName}
                             </span>
                             <span className="text-sm text-muted-foreground ml-2">
-                              ({(option.creditsPerCall / 100).toFixed(2)} credits per usage)
+                              ({option.creditsPerCall} per usage)
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -946,38 +916,12 @@ function CustomerFormPage() {
                               className="w-20"
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                  const creditInput = e.target as HTMLInputElement;
-                                  const priceInput = creditInput.parentElement?.querySelector("input:nth-child(2)") as HTMLInputElement;
-                                  const creditValue = creditInput.value;
-                                  const priceValue = priceInput?.value;
-                                  
-                                  if (creditValue && /^\d*\.?\d*$/.test(creditValue)) {
-                                    const cents = parseCurrencyInput(creditValue);
-                                    const price = priceValue && /^\d*\.?\d*$/.test(priceValue) ? parseFloat(priceValue) : undefined;
-                                    handleAddAllocation(option, cents, price);
-                                    creditInput.value = "";
-                                    if (priceInput) priceInput.value = "";
-                                  }
-                                }
-                              }}
-                            />
-                            <Input
-                              type="text"
-                              placeholder="Price (optional)"
-                              className="w-24"
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  const priceInput = e.target as HTMLInputElement;
-                                  const creditInput = priceInput.parentElement?.querySelector("input:first-child") as HTMLInputElement;
-                                  const creditValue = creditInput?.value;
-                                  const priceValue = priceInput.value;
-                                  
-                                  if (creditValue && /^\d*\.?\d*$/.test(creditValue)) {
-                                    const cents = parseCurrencyInput(creditValue);
-                                    const price = priceValue && /^\d*\.?\d*$/.test(priceValue) ? parseFloat(priceValue) : undefined;
-                                    handleAddAllocation(option, cents, price);
-                                    creditInput.value = "";
-                                    priceInput.value = "";
+                                  const value = (e.target as HTMLInputElement)
+                                    .value;
+                                  if (value && /^\d*\.?\d*$/.test(value)) {
+                                    const cents = parseCurrencyInput(value);
+                                    handleAddAllocation(option, cents);
+                                    (e.target as HTMLInputElement).value = "";
                                   }
                                 }
                               }}
@@ -985,18 +929,15 @@ function CustomerFormPage() {
                             <Button
                               size="sm"
                               onClick={(e) => {
-                                const parent = e.currentTarget.parentElement;
-                                const creditInput = parent?.querySelector("input:first-child") as HTMLInputElement;
-                                const priceInput = parent?.querySelector("input:nth-child(2)") as HTMLInputElement;
-                                const creditValue = creditInput?.value;
-                                const priceValue = priceInput?.value;
-                                
-                                if (creditValue && /^\d*\.?\d*$/.test(creditValue)) {
-                                  const cents = parseCurrencyInput(creditValue);
-                                  const price = priceValue && /^\d*\.?\d*$/.test(priceValue) ? parseFloat(priceValue) : undefined;
-                                  handleAddAllocation(option, cents, price);
-                                  creditInput.value = "";
-                                  priceInput.value = "";
+                                const input =
+                                  e.currentTarget.parentElement?.querySelector(
+                                    "input"
+                                  ) as HTMLInputElement;
+                                const value = input?.value;
+                                if (value && /^\d*\.?\d*$/.test(value)) {
+                                  const cents = parseCurrencyInput(value);
+                                  handleAddAllocation(option, cents);
+                                  input.value = "";
                                 }
                               }}
                             >

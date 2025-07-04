@@ -1,0 +1,194 @@
+import { json } from "@tanstack/react-start";
+import { createServerFileRoute } from "@tanstack/react-start/server";
+import { z } from "zod";
+import { agentRepository } from "~/lib/agents/agents.repo";
+import { customerRepository } from "~/lib/customers/customers.repo";
+import { signalLogRepository } from "~/lib/signals/signal-logs.repo";
+import { signalRepository } from "~/lib/signals/signals.repo";
+import { customerAgentLinksRepository } from "~/lib/customer-agent-links";
+import { creditAllocationsRepository } from "~/lib/credit-allocations";
+import { agentFeeTransactionsRepository } from "~/lib/agent-fee-transactions";
+import { SIGNAL_TYPES, FEE_TYPES, COST_TYPES, type CostType } from "~/lib/database/server";
+
+const trackSignalSchema = z.object({
+  customerId: z.string().min(1, "Customer ID is required"),
+  agentFriendlyId: z.string().min(1, "Agent friendly ID is required"),
+  signalFriendlyId: z.string().min(1, "Signal friendly ID is required"),
+  metadata: z.record(z.any()).optional(),
+});
+
+export const ServerRoute = createServerFileRoute("/api/signals/track").methods({
+  POST: async ({ request }) => {
+    try {
+      const body = await request.json();
+      const validated = trackSignalSchema.parse(body);
+
+      // 1. Find entities
+      const customer = await customerRepository.findById(validated.customerId);
+      if (!customer) {
+        return json({ error: "Customer not found" }, { status: 404 });
+      }
+
+      const agent = await agentRepository.findBySlug(validated.agentFriendlyId);
+      if (!agent) {
+        return json({ error: "Agent not found" }, { status: 404 });
+      }
+
+      // Find signal by agent and friendly identifier
+      const signals = await signalRepository.findByAgentId(agent.id);
+      const signal = signals.find(s => s.slug === validated.signalFriendlyId);
+      if (!signal) {
+        return json({ error: "Signal not found" }, { status: 404 });
+      }
+
+      // 2. Check if agent is restricted
+      const isRestricted = agentRepository.isRestrictedAgent(agent);
+      
+      if (isRestricted) {
+        // Check if customer has access
+        const hasAccess = await customerAgentLinksRepository.hasAccess(customer.id, agent.id);
+        if (!hasAccess) {
+          return json({ 
+            error: "agent_access_denied",
+            message: "Customer is not linked to this restricted agent"
+          }, { status: 403 });
+        }
+
+        // Check and charge fees if first time
+        const feeTransactions = await agentFeeTransactionsRepository.findByCustomerAndAgent(
+          customer.id,
+          agent.id
+        );
+
+        // Charge setup fee (one-time)
+        if (agent.setupFeeEnabled && !feeTransactions.some(t => t.feeType === FEE_TYPES.SETUP)) {
+          await agentFeeTransactionsRepository.create({
+            customerId: customer.id,
+            agentId: agent.id,
+            feeType: FEE_TYPES.SETUP,
+            amountCents: agent.setupFeeCents || 0,
+            billingCycle: null,
+            metadata: { triggeredBy: 'first_signal_usage' }
+          });
+          console.log(`Charged setup fee: $${(agent.setupFeeCents || 0) / 100}`);
+        }
+
+        // Charge platform fee (per billing cycle)
+        if (agent.platformFeeEnabled) {
+          const shouldCharge = await agentFeeTransactionsRepository.shouldChargePlatformFee(
+            customer.id,
+            agent.id,
+            agent.platformFeeBillingCycle || 'monthly'
+          );
+          
+          if (shouldCharge) {
+            // Get last platform fee to link transactions
+            const lastPlatformFee = await agentFeeTransactionsRepository.getLastPlatformFeeTransaction(
+              customer.id,
+              agent.id,
+              agent.platformFeeBillingCycle || 'monthly'
+            );
+            
+            await agentFeeTransactionsRepository.create({
+              customerId: customer.id,
+              agentId: agent.id,
+              feeType: FEE_TYPES.PLATFORM,
+              amountCents: agent.platformFeeCents || 0,
+              billingCycle: agent.platformFeeBillingCycle || 'monthly',
+              billingTimezone: 'UTC', // Could be enhanced to use customer timezone
+              previousTransactionId: lastPlatformFee?.id,
+              metadata: { triggeredBy: 'signal_usage' }
+            });
+            console.log(`Charged platform fee: $${(agent.platformFeeCents || 0) / 100}`);
+          }
+        }
+      }
+
+      // 3. Handle credit-based signals
+      if (signal.signalType === SIGNAL_TYPES.CREDIT) {
+        const allocation = await creditAllocationsRepository.findByCustomerAgentSignal(
+          customer.id,
+          agent.id,
+          signal.id
+        );
+
+        if (!allocation || allocation.creditsCents < (signal.creditsPerCallCents || 0)) {
+          return json({
+            error: "insufficient_credits",
+            message: "Not enough credits",
+            required: signal.creditsPerCallCents,
+            available: allocation?.creditsCents || 0
+          }, { status: 402 });
+        }
+
+        // Deduct credits atomically
+        const updated = await creditAllocationsRepository.deductCredits(
+          allocation.id,
+          signal.creditsPerCallCents || 0
+        );
+
+        if (!updated) {
+          return json({
+            error: "insufficient_credits",
+            message: "Not enough credits (race condition)"
+          }, { status: 402 });
+        }
+      }
+
+      // 4. Calculate cost information
+      let costCents = 0;
+      let costType: CostType = COST_TYPES.MONETARY;
+      let costDisplay = '';
+      
+      switch (signal.signalType) {
+        case SIGNAL_TYPES.USAGE:
+          costCents = signal.pricePerCallCents || 0;
+          costType = COST_TYPES.MONETARY;
+          costDisplay = `$${(costCents / 100).toFixed(2)} charged`;
+          break;
+        case SIGNAL_TYPES.OUTCOME:
+          costCents = signal.outcomePriceCents || 0;
+          costType = COST_TYPES.MONETARY;
+          costDisplay = `$${(costCents / 100).toFixed(2)} charged`;
+          break;
+        case SIGNAL_TYPES.CREDIT:
+          costCents = signal.creditsPerCallCents || 0;
+          costType = COST_TYPES.CREDIT;
+          costDisplay = `${(costCents / 100).toFixed(2)} credits deducted`;
+          break;
+      }
+
+      // 5. Log the signal with cost information
+      await signalLogRepository.create({
+        agentSignalId: signal.id,
+        customerId: customer.id,
+        costCents,
+        costType,
+        metadata: validated.metadata || {}
+      });
+
+      return json({
+        success: true,
+        signal: {
+          type: signal.signalType,
+          name: signal.name,
+          cost: costCents / 100, // Convert to decimal for display
+          costType,
+          costDisplay
+        }
+      });
+
+    } catch (error) {
+      console.error("Error tracking signal:", error);
+      
+      if (error instanceof z.ZodError) {
+        return json({ 
+          error: "validation_error", 
+          details: error.errors 
+        }, { status: 400 });
+      }
+      
+      return json({ error: "Internal server error" }, { status: 500 });
+    }
+  },
+});
