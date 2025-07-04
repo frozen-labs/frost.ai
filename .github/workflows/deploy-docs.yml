@@ -2,9 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'apps/docs/**'
+      - "apps/docs/**"
   # Allows you to run this workflow manually from the Actions tab on GitHub.
   workflow_dispatch:
 
@@ -24,6 +24,7 @@ jobs:
         uses: withastro/action@v3
         with:
           path: ./apps/docs
+          package-manager: pnpm@latest
 
   deploy:
     needs: build
