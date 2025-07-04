@@ -1,0 +1,185 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for Frost AI
+---
+
+import { Card, CardGrid, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+This guide covers common issues you might encounter when setting up, developing, or deploying Frost AI, along with their solutions.
+
+## Quick Diagnostics
+
+Before diving into specific issues, run these quick checks:
+
+```bash
+# Check if all services are running
+docker ps
+
+# Test API health
+curl http://localhost:3000/api/health
+
+# Check application logs
+docker-compose logs app
+
+# Check database logs
+docker-compose logs postgres
+```
+
+## Installation Issues
+
+### Docker Issues
+
+#### 🐳 Docker Not Starting
+
+**Symptoms**: `docker: command not found` or permission denied
+
+**Solutions**:
+```bash
+# Install Docker (Ubuntu/Debian)
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Add user to docker group
+sudo usermod -aG docker $USER
+# Log out and log back in
+```
+
+#### ⚠️ Port Already in Use
+
+**Symptoms**: `Port 3000 is already in use`
+
+**Solutions**:
+```bash
+# Find what's using the port
+lsof -i :3000
+
+# Kill the process or change port in .env
+echo "FROSTAI_PORT=3001" >> .env
+```
+
+### Node.js and pnpm Issues
+
+<Tabs>
+<TabItem label="Node.js Version">
+**Issue**: Wrong Node.js version
+
+```bash
+# Check current version
+node --version
+
+# Install correct version with nvm
+nvm install 18
+nvm use 18
+nvm alias default 18
+```
+</TabItem>
+
+<TabItem label="pnpm Not Found">
+**Issue**: `pnpm: command not found`
+
+```bash
+# Install pnpm
+npm install -g pnpm
+
+# Or use corepack
+corepack enable
+corepack prepare pnpm@latest --activate
+```
+</TabItem>
+
+<TabItem label="Permission Errors">
+**Issue**: Permission denied when installing packages
+
+```bash
+# Fix npm permissions
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+```
+</TabItem>
+</Tabs>
+
+## Database Issues
+
+### Connection Problems
+
+#### 🔌 Database Connection Failed
+
+**Symptoms**: `ECONNREFUSED` or `connection refused`
+
+**Diagnosis**:
+```bash
+# Check if database container is running
+docker ps | grep postgres
+
+# Check database logs
+docker-compose logs postgres
+```
+
+**Solutions**:
+```bash
+# Restart database
+make dev-db-down
+make dev-db
+
+# Or reset completely
+make dev-db-clean
+make dev-db
+pnpm db:push
+```
+
+#### 🔐 Authentication Failed
+
+**Symptoms**: `password authentication failed`
+
+**Solutions**:
+```bash
+# Check environment variables
+cat .env | grep POSTGRES
+
+# Reset database with correct credentials
+make dev-db-clean
+make dev-db
+```
+
+### Schema Issues
+
+<Tabs>
+<TabItem label="Schema Out of Sync">
+**Symptoms**: Table doesn't exist errors
+
+```bash
+# Reset and rebuild schema
+make dev-db-clean
+make dev-db
+pnpm db:push
+```
+</TabItem>
+
+<TabItem label="Migration Failures">
+**Symptoms**: Migration fails to apply
+
+```bash
+# Check migration status
+pnpm db:studio
+
+# Reset migrations
+rm -rf drizzle/
+pnpm db:generate
+pnpm db:migrate
+```
+</TabItem>
+
+<TabItem label="Data Loss">
+**Symptoms**: Data disappeared after restart
+
+```bash
+# Ensure data persistence
+docker volume ls | grep postgres
+
+# Create backup before changes
+docker exec postgres_container pg_dump -U user dbname > backup.sql
+```
+</TabItem>
+</Tabs>
