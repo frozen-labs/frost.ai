@@ -1,4 +1,4 @@
-# Frost: Documentation
+# Frost AI Documentation
 
 This repository contains the documentation for Frost AI, an open-source billing and analytics engine for AI companies.
 
