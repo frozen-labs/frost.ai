@@ -343,6 +343,7 @@ export const agentSignalsRelations = relations(agentSignals, ({ one, many }) => 
     references: [agents.id],
   }),
   creditAllocations: many(customerCreditAllocations),
+  creditPurchases: many(creditPurchases),
 }));
 
 export const agentSignalLogsRelations = relations(
@@ -380,7 +381,7 @@ export const tokenUsageRelations = relations(tokenUsage, ({ one }) => ({
 
 
 // New table relations
-const customerAgentLinksRelations = relations(customerAgentLinks, ({ one }) => ({
+export const customerAgentLinksRelations = relations(customerAgentLinks, ({ one }) => ({
   customer: one(customers, {
     fields: [customerAgentLinks.customerId],
     references: [customers.id],
@@ -391,7 +392,7 @@ const customerAgentLinksRelations = relations(customerAgentLinks, ({ one }) => (
   }),
 }));
 
-const customerCreditAllocationsRelations = relations(customerCreditAllocations, ({ one }) => ({
+export const customerCreditAllocationsRelations = relations(customerCreditAllocations, ({ one }) => ({
   customer: one(customers, {
     fields: [customerCreditAllocations.customerId],
     references: [customers.id],
@@ -406,7 +407,7 @@ const customerCreditAllocationsRelations = relations(customerCreditAllocations, 
   }),
 }));
 
-const agentFeeTransactionsRelations = relations(agentFeeTransactions, ({ one }) => ({
+export const agentFeeTransactionsRelations = relations(agentFeeTransactions, ({ one }) => ({
   customer: one(customers, {
     fields: [agentFeeTransactions.customerId],
     references: [customers.id],
@@ -417,7 +418,7 @@ const agentFeeTransactionsRelations = relations(agentFeeTransactions, ({ one }) 
   }),
 }));
 
-const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
+export const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
   customer: one(customers, {
     fields: [creditPurchases.customerId],
     references: [customers.id],
