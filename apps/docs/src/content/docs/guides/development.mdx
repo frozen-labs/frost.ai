@@ -321,23 +321,6 @@ export const Route = createFileRoute("/new-feature")({
 
 ## Code Style and Patterns
 
-### TypeScript Configuration
-
-Frost AI uses strict TypeScript configuration:
-
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true
-  }
-}
-```
-
 ### Code Organization Patterns
 
 #### Repository Pattern
@@ -415,100 +398,6 @@ describe("Token Metering API", () => {
     expect(data.cost).toBeDefined();
     expect(data.id).toBeDefined();
   });
-});
-```
-
-### Component Testing
-
-```typescript
-// src/__tests__/components/TokenUsageChart.test.tsx
-import { render, screen } from "@testing-library/react";
-import { TokenUsageChart } from "~/components/TokenUsageChart";
-
-describe("TokenUsageChart", () => {
-  it("renders usage data", () => {
-    const mockData = [{ date: "2024-01-01", tokens: 1000, cost: 0.02 }];
-
-    render(<TokenUsageChart data={mockData} />);
-
-    expect(screen.getByText("Token Usage")).toBeInTheDocument();
-  });
-});
-```
-
-## Debugging
-
-### Development Tools
-
-<CardGrid>
-  <Card title="🔍 Database Debugging" icon="database">
-    Use Drizzle Studio to inspect database state and query results.
-    ```bash
-    pnpm db:studio
-    ```
-  </Card>
-  <Card title="🐛 API Debugging" icon="setting">
-    Use browser DevTools Network tab or tools like Postman to test API endpoints.
-  </Card>
-  <Card title="📊 Performance Monitoring" icon="information">
-    Use React DevTools and browser Performance tab to profile components.
-  </Card>
-</CardGrid>
-
-### Common Debugging Scenarios
-
-```bash
-# Check database connections
-docker ps  # Verify database container is running
-
-# Check API endpoints
-curl http://localhost:3000/api/health
-
-# View application logs
-docker-compose logs -f app
-
-# Check database data
-pnpm db:studio  # Visual database explorer
-```
-
-## Performance Optimization
-
-### Database Optimization
-
-```typescript
-// Use indexes for frequently queried fields
-export const tokenUsage = pgTable(
-  "token_usage",
-  {
-    // ... other fields
-    customerSlug: text("customer_slug").notNull(),
-    createdAt: timestamp("created_at").notNull(),
-  },
-  (table) => ({
-    customerSlugIdx: index("customer_slug_idx").on(table.customerSlug),
-    createdAtIdx: index("created_at_idx").on(table.createdAt),
-  })
-);
-```
-
-### API Response Optimization
-
-```typescript
-// Paginate large result sets
-export const Route = createAPIFileRoute("/api/usage")({
-  GET: async ({ request }) => {
-    const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get("page") || "1");
-    const limit = parseInt(url.searchParams.get("limit") || "50");
-
-    const usage = await db
-      .select()
-      .from(tokenUsage)
-      .limit(limit)
-      .offset((page - 1) * limit);
-
-    return json({ usage, pagination: { page, limit } });
-  },
 });
 ```
 
