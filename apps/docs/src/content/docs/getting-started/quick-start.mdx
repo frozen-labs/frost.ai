@@ -93,30 +93,9 @@ The important part is the HTTP status code. If it's 201, then the usage was trac
     Explore all available API endpoints and examples.
     [View API docs →](/api/overview/)
   </Card>
-  <Card title="🔧 Configuration" icon="setting">
-    Configure Frost AI for your specific use case.
-    [View configuration →](/reference/environment-vars/)
-  </Card>
 </CardGrid>
 
 ## Troubleshooting
-
-Having issues? Here are common solutions:
-
-**Port already in use?**
-```bash
-# Change the port in .env
-echo "FROSTAI_PORT=3001" >> .env
-make prod-down
-make prod-up
-```
-
-**Database connection issues?**
-```bash
-# Reset and restart
-make prod-down
-make prod-up
-```
 
 **Need help?** Check out our [troubleshooting guide](/troubleshooting/) or [open an issue](https://github.com/frozen-labs/frost/issues).
 
