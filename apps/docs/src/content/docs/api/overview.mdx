@@ -1,0 +1,134 @@
+---
+title: API Overview
+description: Complete guide to the Frost AI REST API
+---
+
+import { Card, CardGrid, Badge, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Frost AI API provides a simple, RESTful interface for tracking AI usage, managing customers, and retrieving analytics data. All endpoints return JSON and follow standard HTTP conventions.
+
+## Base URL
+
+```
+http://localhost:3000/api
+```
+
+<Badge text="Note" variant="tip" />
+Replace `localhost:3000` with your actual Frost AI deployment URL.
+
+## Quick Start
+
+Here's a simple example to get you started:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+Response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## API Endpoints
+
+<CardGrid>
+  <Card title="🔍 Health Check" icon="approval">
+    Check API availability and system status.
+    [View details →](/api/endpoints/health/)
+  </Card>
+  <Card title="📊 Token Tracking" icon="information">
+    Track AI model token usage and costs.
+    [View details →](/api/endpoints/tokens/)
+  </Card>
+  <Card title="📡 Signal Tracking" icon="setting">
+    Track custom business signals and events.
+    [View details →](/api/endpoints/signals/)
+  </Card>
+  <Card title="👥 Customer Management" icon="user">
+    Create and manage customer records.
+    [View details →](/api/endpoints/customers/)
+  </Card>
+</CardGrid>
+
+## Request Format
+
+All API requests must:
+- Use `Content-Type: application/json` header for POST requests
+- Send data as valid JSON in the request body
+- Use appropriate HTTP methods (GET, POST, PUT, DELETE)
+
+### Example Request
+```http
+POST /api/metering/tokens HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "customerSlug": "acme-corp",
+  "agentSlug": "chatbot-v1",
+  "modelSlug": "gpt-4",
+  "inputTokens": 1500,
+  "outputTokens": 500
+}
+```
+
+## Response Format
+
+All API responses follow a consistent format:
+
+### Success Response
+Successful response will have a successfull HTTP status code (200, 201, etc.) and a JSON body with the response data.
+
+### Error Response
+Error response will have a failed HTTP status code (400, 404, etc.) and a JSON body with the error details.
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input data",
+    "details": [
+      {
+        "field": "inputTokens",
+        "message": "Expected number, received string"
+      }
+    ]
+  }
+}
+```
+
+## HTTP Status Codes
+
+The API uses standard HTTP status codes:
+
+| Code | Meaning | Usage |
+|------|---------|-------|
+| `200` | OK | Successful GET request |
+| `201` | Created | Successful POST request |
+| `400` | Bad Request | Invalid request data |
+| `404` | Not Found | Resource not found |
+| `422` | Unprocessable Entity | Validation errors |
+| `500` | Internal Server Error | Server-side error |
+
+## Next Steps
+
+<CardGrid>
+  <Card title="🚀 Quick Start" icon="rocket">
+    Try the API with our quick start guide.
+    [Get Started →](/getting-started/quick-start/)
+  </Card>
+  <Card title="📚 Endpoint Details" icon="document">
+    Explore detailed documentation for each endpoint.
+    [Token Tracking →](/api/endpoints/tokens/)
+  </Card>
+  <Card title="💡 Client Examples" icon="laptop">
+    See complete integration examples.
+    [Examples →](/api/client-examples/)
+  </Card>
+  <Card title="🔒 Security" icon="warning">
+    Learn about securing your API in production.
+    [Security →](/best-practices/security/)
+  </Card>
+</CardGrid>

@@ -1,0 +1,178 @@
+---
+title: Signal Tracking
+description: Track custom business signals and events with flexible pricing
+---
+
+import { Badge, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+The signal tracking endpoint allows you to monitor custom business events and metrics beyond token usage. This is perfect for tracking document processing, API calls, user actions, or any other billable events in your AI application.
+
+## Endpoint
+
+```http
+POST /api/metering/signals
+```
+
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `customerSlug` | string | ✅ | Unique identifier for the customer |
+| `agentSlug` | string | ✅ | Identifier for the AI agent/service |
+| `signalSlug` | string | ✅ | Type of signal/event being tracked |
+| `count` | number | ❌ | Number of signal occurrences (default: 1) |
+| `metadata` | object | ❌ | Additional context data |
+
+### Request Schema
+
+```json
+{
+  "customerSlug": "string (1-50 chars, lowercase, alphanumeric + hyphens)",
+  "agentSlug": "string (1-50 chars, lowercase, alphanumeric + hyphens)",
+  "signalSlug": "string (1-50 chars, lowercase, alphanumeric + hyphens)",
+  "count": "number (1-1000000, default: 1)",
+  "metadata": "object (optional)"
+}
+```
+
+## Response
+
+### Success Response
+
+**Status:** `201 Created`
+
+```json
+{
+  "id": "01234567-89ab-cdef-0123-456789abcdef",
+  "cost": "0.150000",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "customerSlug": "acme-corp",
+  "agentSlug": "document-processor",
+  "signalSlug": "document-processed",
+  "count": 1,
+  "unitCost": "0.150000",
+  "metadata": {
+    "pages": 10,
+    "format": "pdf",
+    "size": "2.4MB"
+  }
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique identifier for this signal record |
+| `cost` | string | Total cost in USD (count × unit cost) |
+| `timestamp` | string | ISO 8601 timestamp when signal was recorded |
+| `customerSlug` | string | Customer identifier from request |
+| `agentSlug` | string | Agent identifier from request |
+| `signalSlug` | string | Signal type from request |
+| `count` | number | Number of occurrences tracked |
+| `unitCost` | string | Cost per single signal occurrence |
+| `metadata` | object | Additional data from request |
+
+## Examples
+
+<Tabs>
+
+<TabItem label="API Calls">
+```bash
+curl -X POST http://localhost:3000/api/metering/signals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerSlug": "startup-xyz",
+    "agentSlug": "search-api",
+    "signalSlug": "search-query",
+    "metadata": {
+      "queryType": "semantic",
+      "resultCount": 25,
+      "responseTime": 120,
+      "cacheHit": false
+    }
+  }'
+```
+</TabItem>
+
+<TabItem label="User Actions">
+```bash
+curl -X POST http://localhost:3000/api/metering/signals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerSlug": "enterprise-client",
+    "agentSlug": "analytics-engine", 
+    "signalSlug": "report-generated",
+    "metadata": {
+      "reportType": "monthly",
+      "dataPoints": 50000,
+      "complexity": "high",
+      "exportFormat": "xlsx"
+    }
+  }'
+```
+</TabItem>
+
+<TabItem label="JavaScript SDK">
+```javascript
+class FrostAIClient {
+  constructor(baseUrl = 'http://localhost:3000/api') {
+    this.baseUrl = baseUrl;
+  }
+
+  async trackSignal(signal) {
+    const response = await fetch(`${this.baseUrl}/metering/signals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(signal),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to track signal: ${response.status}`);
+    }
+
+    return response.json();
+  }
+}
+
+// Usage examples
+const client = new FrostAIClient();
+
+// Track document processing
+await client.trackSignal({
+  customerSlug: 'acme-corp',
+  agentSlug: 'ocr-service',
+  signalSlug: 'document-ocr',
+  metadata: {
+    pages: 15,
+    language: 'en',
+    confidence: 0.98
+  }
+});
+
+// Track multiple API calls
+await client.trackSignal({
+  customerSlug: 'tech-startup',
+  agentSlug: 'embedding-service',
+  signalSlug: 'text-embedding',
+  metadata: {
+    model: 'text-embedding-ada-002',
+    totalTokens: 50000
+  }
+});
+```
+</TabItem>
+</Tabs>
+
+
+<Aside type="tip">
+Signal pricing is configurable per customer and agent. Contact your administrator to set up custom pricing for your specific use cases.
+</Aside>
+
+## Related Endpoints
+
+- [Token Tracking →](/api/endpoints/tokens/) - Track AI model token usage
+- [Customer Management →](/api/endpoints/customers/) - Manage customer records
+- [Health Check →](/api/endpoints/health/) - Monitor API status
+- [API Overview →](/api/overview/) - Complete API documentation

@@ -1,36 +1,99 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
+title: Frost AI
+description: Open-source billing and analytics engine for AI companies
 template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  title: Frost AI
+  tagline: Open-source billing and analytics engine for AI companies
   image:
-    file: ../../assets/houston.webp
+    alt: Frost AI logo
+    html: |
+      <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="60" cy="60" r="45" fill="url(#gradient)" stroke="currentColor" stroke-width="2"/>
+        <path d="M35 60 L60 35 L85 60 L60 85 Z" fill="currentColor" opacity="0.7"/>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+      </svg>
   actions:
-    - text: Example Guide
-      link: /guides/example/
-      icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: Quick Start
+      link: /getting-started/quick-start/
+      icon: rocket
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/frozen-labs/frost
       icon: external
-      variant: minimal
+      variant: secondary
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## What is Frost AI?
 
-<CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
-	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
-	</Card>
+Frost AI is a comprehensive billing and analytics engine designed specifically for AI companies. It provides real-time cost tracking, usage analytics, and profitability insights per customer, agent, and AI model.
+
+<CardGrid>
+  <Card title="💰 Cost Tracking" icon="information">
+    Track AI model costs automatically with built-in pricing for popular models like GPT-4, Claude, and more.
+  </Card>
+  <Card title="📊 Real-time Analytics" icon="information">
+    Monitor usage patterns, costs, and performance metrics in real-time with automatic aggregation.
+  </Card>
+  <Card title="🔧 Developer-First" icon="information">
+    Simple REST API for easy integration with existing AI applications and workflows.
+  </Card>
 </CardGrid>
+
+## Key Features
+
+### 📈 **Comprehensive Analytics**
+- Track token usage across multiple AI models
+- Monitor costs per customer, agent, and model
+- Real-time cost calculation and aggregation
+- Custom signal tracking for business metrics
+
+### 🚀 **Easy Integration**
+- RESTful API with comprehensive documentation
+- Client examples for Python, JavaScript/TypeScript
+- Automatic cost calculation based on model pricing
+- Flexible metadata support for custom tracking
+
+### 🛡️ **Production Features**
+- Automatic database migrations
+- Health check endpoints
+- Docker containerization
+- Environment-based configuration
+
+## Getting Started
+
+<CardGrid>
+  <Card title="🚀 Quick Start" icon="rocket">
+    Get up and running in 5 minutes with our quick start guide.
+    [Start here →](/getting-started/quick-start/)
+  </Card>
+  <Card title="📚 API Reference" icon="document">
+    Comprehensive API documentation with examples.
+    [View API docs →](/api/overview/)
+  </Card>
+</CardGrid>
+
+## Use Cases
+
+- **AI SaaS Companies**: Track costs and usage for customer billing
+- **AI Agencies**: Monitor profitability across different clients
+- **Internal AI Tools**: Understand resource consumption and optimize costs
+
+## Open Source & Community
+
+Frost AI is open-source under the GNU Affero General Public License v3.0 (AGPL v3). We welcome contributions, feedback, and feature requests from the community.
+
+- **GitHub**: [frozen-labs/frost](https://github.com/frozen-labs/frost)
+- **Issues**: [Report bugs or request features](https://github.com/frozen-labs/frost/issues)
+- **License**: [GNU Affero General Public License v3.0](https://github.com/frozen-labs/frost/blob/main/LICENSE)
+
+---
+
+Ready to start tracking your AI costs and usage? [Get started now →](/getting-started/quick-start/)

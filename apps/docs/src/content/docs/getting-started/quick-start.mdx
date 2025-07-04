@@ -1,0 +1,125 @@
+---
+title: Quick Start
+description: Get Frost AI running in under 5 minutes
+---
+
+import { Card, CardGrid, Code } from '@astrojs/starlight/components';
+
+Get Frost AI up and running in under 5 minutes with Docker Compose. This guide will have you tracking AI costs and usage in no time.
+
+## Prerequisites
+
+Before starting, ensure you have:
+- Docker and Docker Compose installed
+- Git for cloning the repository
+- A terminal/command line interface
+
+## 1. Clone and Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/frozen-labs/frost.git
+cd frost
+
+# Copy environment configuration
+cp .env.example .env
+```
+
+## 2. Start the Application
+
+```bash
+# Start the full stack (database + application)
+make prod-up
+```
+
+This command will:
+- Start a PostgreSQL database container
+- Run database migrations automatically
+- Launch the Frost AI application
+- Make everything available at `http://localhost:3000`
+
+## 3. Verify Installation
+
+Open your browser and navigate to:
+- **Application**: [http://localhost:3000](http://localhost:3000)
+- **Health Check**: [http://localhost:3000/api/health](http://localhost:3000/api/health)
+
+You should see the Frost AI dashboard and a healthy API response.
+
+## 4. Create data
+
+Before tracking usage, you do need to use the GUI to create the following data:
+- Customer
+- Agent
+- Model
+
+## 5. Track Your First Usage
+
+Now let's track some AI usage! Here's how to record token usage:
+
+```bash
+curl -X POST http://localhost:3000/api/metering/tokens \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerSlug": "demo-customer",
+    "agentSlug": "chatbot-v1",
+    "modelSlug": "gpt-4",
+    "inputTokens": 1000,
+    "outputTokens": 500
+  }'
+```
+
+You should get a response like:
+```json
+{
+  "usageId": "<ID>",
+}
+```
+
+The important part is the HTTP status code. If it's 201, then the usage was tracked successfully.
+
+## 6. View Your Data
+
+- **Dashboard**: Visit [http://localhost:3000](http://localhost:3000) to see your usage data
+
+## Next Steps
+
+<CardGrid>
+  <Card title="🏗️ Development Setup" icon="laptop">
+    Set up a development environment for customization.
+    [Learn more →](/getting-started/installation/)
+  </Card>
+  <Card title="📚 API Documentation" icon="document">
+    Explore all available API endpoints and examples.
+    [View API docs →](/api/overview/)
+  </Card>
+  <Card title="🔧 Configuration" icon="setting">
+    Configure Frost AI for your specific use case.
+    [View configuration →](/reference/environment-vars/)
+  </Card>
+</CardGrid>
+
+## Troubleshooting
+
+Having issues? Here are common solutions:
+
+**Port already in use?**
+```bash
+# Change the port in .env
+echo "FROSTAI_PORT=3001" >> .env
+make prod-down
+make prod-up
+```
+
+**Database connection issues?**
+```bash
+# Reset and restart
+make prod-down
+make prod-up
+```
+
+**Need help?** Check out our [troubleshooting guide](/troubleshooting/) or [open an issue](https://github.com/frozen-labs/frost/issues).
+
+---
+
+🎉 **Congratulations!** You now have Frost AI running and tracking your first AI usage. Ready to integrate it with your applications? Check out our [API documentation](/api/overview/).

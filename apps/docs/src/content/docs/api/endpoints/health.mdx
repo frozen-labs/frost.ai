@@ -1,0 +1,103 @@
+---
+title: Health Check
+description: API health check endpoint for monitoring system status
+---
+
+import { Badge, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The health check endpoint provides a simple way to verify that the Frost AI API is running and accessible. This endpoint is commonly used by monitoring systems, load balancers, and deployment tools.
+
+## Endpoint
+
+```http
+GET /api/health
+```
+
+## Response
+
+### Success Response
+
+**Status:** `200 OK`
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Always `"ok"` when the service is healthy |
+| `timestamp` | string | ISO 8601 timestamp of when the response was generated |
+
+## Examples
+
+<Tabs>
+<TabItem label="curl">
+```bash
+curl http://localhost:3000/api/health
+```
+</TabItem>
+
+<TabItem label="JavaScript">
+```javascript
+const response = await fetch('http://localhost:3000/api/health');
+const health = await response.json();
+
+console.log('API Status:', health.status);
+console.log('Timestamp:', health.timestamp);
+```
+</TabItem>
+
+<TabItem label="Python">
+```python
+import requests
+
+response = requests.get('http://localhost:3000/api/health')
+health = response.json()
+
+print(f"API Status: {health['status']}")
+print(f"Timestamp: {health['timestamp']}")
+```
+</TabItem>
+
+<TabItem label="Go">
+```go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+type HealthResponse struct {
+    Status    string `json:"status"`
+    Timestamp string `json:"timestamp"`
+}
+
+func main() {
+    resp, err := http.Get("http://localhost:3000/api/health")
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+
+    var health HealthResponse
+    json.NewDecoder(resp.Body).Decode(&health)
+
+    fmt.Printf("API Status: %s\n", health.Status)
+    fmt.Printf("Timestamp: %s\n", health.Timestamp)
+}
+```
+</TabItem>
+</Tabs>
+
+## Related Endpoints
+
+- [Token Tracking →](/api/endpoints/tokens/) - Track AI model usage
+- [Customer Management →](/api/endpoints/customers/) - Manage customer records
+- [API Overview →](/api/overview/) - Complete API documentation

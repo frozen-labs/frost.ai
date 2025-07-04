@@ -1,0 +1,212 @@
+---
+title: Token Tracking
+description: Track AI model token usage and automatically calculate costs
+---
+
+import { Badge, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+The token tracking endpoint is the core of Frost AI's usage monitoring system. It records AI model token consumption and automatically calculates costs based on configured model pricing.
+
+## Endpoint
+
+```http
+POST /api/metering/tokens
+```
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `customerSlug` | string | ✅ | Unique identifier for the customer |
+| `agentSlug` | string | ✅ | Identifier for the AI agent/service |
+| `modelSlug` | string | ✅ | AI model identifier (e.g., `gpt-4`, `claude-3-opus`) |
+| `inputTokens` | number | ✅ | Number of input tokens consumed |
+| `outputTokens` | number | ✅ | Number of output tokens generated |
+| `metadata` | object | ❌ | Additional context data |
+
+### Request Schema
+
+```json
+{
+  "customerSlug": "string (1-50 chars, lowercase, alphanumeric + hyphens)",
+  "agentSlug": "string (1-50 chars, lowercase, alphanumeric + hyphens)", 
+  "modelSlug": "string (must match configured model)",
+  "inputTokens": "number (1-1000000)",
+  "outputTokens": "number (1-1000000)",
+  "metadata": "object (optional)"
+}
+```
+
+## Response
+
+### Success Response
+
+**Status:** `201 Created`
+
+```json
+{
+  "id": "01234567-89ab-cdef-0123-456789abcdef",
+  "cost": "0.060000",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "customerSlug": "acme-corp",
+  "agentSlug": "chatbot-v1",
+  "modelSlug": "gpt-4",
+  "inputTokens": 1500,
+  "outputTokens": 500,
+  "inputCost": "0.045000",
+  "outputCost": "0.015000"
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique identifier for this usage record |
+| `cost` | string | Total cost in USD (decimal string) |
+| `timestamp` | string | ISO 8601 timestamp when usage was recorded |
+| `customerSlug` | string | Customer identifier from request |
+| `agentSlug` | string | Agent identifier from request |
+| `modelSlug` | string | Model identifier from request |
+| `inputTokens` | number | Input tokens from request |
+| `outputTokens` | number | Output tokens from request |
+| `inputCost` | string | Cost for input tokens only |
+| `outputCost` | string | Cost for output tokens only |
+
+## Examples
+
+<Tabs>
+<TabItem label="Basic Usage">
+```bash
+curl -X POST http://localhost:3000/api/metering/tokens \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerSlug": "acme-corp",
+    "agentSlug": "chatbot-v1", 
+    "modelSlug": "gpt-4",
+    "inputTokens": 1500,
+    "outputTokens": 500
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": "01234567-89ab-cdef-0123-456789abcdef",
+  "cost": "0.060000",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "inputCost": "0.045000",
+  "outputCost": "0.015000"
+}
+```
+</TabItem>
+
+<TabItem label="JavaScript SDK">
+```javascript
+class FrostAIClient {
+  constructor(baseUrl = 'http://localhost:3000/api') {
+    this.baseUrl = baseUrl;
+  }
+
+  async trackTokens(usage) {
+    const response = await fetch(`${this.baseUrl}/metering/tokens`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(usage),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to track tokens: ${response.status}`);
+    }
+
+    return response.json();
+  }
+}
+
+// Usage
+const client = new FrostAIClient();
+
+const result = await client.trackTokens({
+  customerSlug: 'acme-corp',
+  agentSlug: 'chatbot-v1',
+  modelSlug: 'gpt-4',
+  inputTokens: 1500,
+  outputTokens: 500,
+  metadata: {
+    conversationId: 'conv_123',
+    userTier: 'premium'
+  }
+});
+
+console.log(`Usage tracked! Cost: $${result.cost}`);
+```
+</TabItem>
+
+<TabItem label="Python SDK">
+```python
+import requests
+from typing import Dict, Any, Optional
+
+class FrostAIClient:
+    def __init__(self, base_url: str = "http://localhost:3000/api"):
+        self.base_url = base_url
+
+    def track_tokens(self, 
+                    customer_slug: str,
+                    agent_slug: str, 
+                    model_slug: str,
+                    input_tokens: int,
+                    output_tokens: int,
+                    metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        
+        payload = {
+            "customerSlug": customer_slug,
+            "agentSlug": agent_slug,
+            "modelSlug": model_slug,
+            "inputTokens": input_tokens,
+            "outputTokens": output_tokens
+        }
+        
+        if metadata:
+            payload["metadata"] = metadata
+
+        response = requests.post(
+            f"{self.base_url}/metering/tokens",
+            json=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        response.raise_for_status()
+        return response.json()
+
+# Usage
+client = FrostAIClient()
+
+result = client.track_tokens(
+    customer_slug="acme-corp",
+    agent_slug="chatbot-v1", 
+    model_slug="gpt-4",
+    input_tokens=1500,
+    output_tokens=500,
+    metadata={
+        "conversation_id": "conv_123",
+        "user_tier": "premium"
+    }
+)
+
+print(f"Usage tracked! Cost: ${result['cost']}")
+```
+</TabItem>
+</Tabs>
+
+## Supported Models
+
+You have to configure the models using the GUI.
+
+
+## Related Endpoints
+
+- [Signal Tracking →](/api/endpoints/signals/) - Track custom business events
+- [Customer Management →](/api/endpoints/customers/) - Manage customer records  
+- [Health Check →](/api/endpoints/health/) - Monitor API status
+- [API Overview →](/api/overview/) - Complete API documentation

@@ -1,0 +1,104 @@
+---
+title: Installation
+description: Detailed installation guide for development and production
+---
+
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This guide covers setting up Frost AI for development and customization. If you just want to get started quickly, check out our [Quick Start](/getting-started/quick-start/) guide.
+
+## Prerequisites
+
+Before installing Frost AI, ensure you have the following installed:
+
+### Required
+- **Node.js 18+** - [Download from nodejs.org](https://nodejs.org/)
+- **pnpm** - Install with `npm install -g pnpm`
+- **Docker & Docker Compose** - [Get Docker](https://docs.docker.com/get-docker/)
+- **Git** - [Download Git](https://git-scm.com/)
+
+## Production Installation
+
+### Using Docker Compose (Recommended)
+
+The easiest way to run Frost AI in production is using Docker Compose:
+
+```bash
+# Clone the repository
+git clone https://github.com/frozen-labs/frost.git
+cd frost
+
+# Configure environment for production
+cp .env.example .env
+# Edit .env with production values
+
+# Start production stack
+make prod-up
+```
+
+## Database Setup
+
+### Development Database
+
+```bash
+# Start PostgreSQL container
+make dev-db
+
+# Push schema to database
+pnpm db:push
+
+# (Optional) Open database GUI
+pnpm db:studio
+```
+
+### Production Database
+
+For production, you have several options:
+
+<CardGrid>
+  <Card title="🐘 Self-hosted PostgreSQL" icon="database">
+    Install PostgreSQL on your server and configure the connection.
+  </Card>
+  <Card title="☁️ Cloud Database" icon="external">
+    Use managed PostgreSQL from AWS RDS, Google Cloud SQL, or similar.
+  </Card>
+  <Card title="🐳 Docker Database" icon="docker">
+    Use the included Docker Compose PostgreSQL service.
+  </Card>
+</CardGrid>
+
+## Verification
+
+After installation, verify everything is working:
+
+### Health Check
+```bash
+curl http://localhost:3000/api/health
+```
+
+Expected response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## Next Steps
+
+<CardGrid>
+  <Card title="🚀 Development Guide" icon="laptop">
+    Learn how to develop and customize Frost AI.
+    [Development →](/guides/development/)
+  </Card>
+  <Card title="📚 API Reference" icon="document">
+    Explore the API endpoints and integration examples.
+    [API Reference →](/api/overview/)
+  </Card>
+  <Card title="🏗️ Architecture" icon="information">
+    Understand the system architecture and design decisions.
+    [Architecture →](/reference/architecture/)
+  </Card>
+</CardGrid>
+
+Need more help? Check our [troubleshooting guide](/troubleshooting/) or [open an issue](https://github.com/frozen-labs/frost/issues).

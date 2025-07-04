@@ -1,0 +1,536 @@
+---
+title: Development Guide
+description: Complete guide for developing and customizing Frost AI
+---
+
+import { Card, CardGrid, FileTree, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This guide covers everything you need to know for developing and customizing Frost AI, from setting up your development environment to implementing new features.
+
+## Development Setup
+
+### Prerequisites
+
+Before you start developing, ensure you have completed the [installation guide](/getting-started/installation/).
+
+### Quick Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/frozen-labs/frost.git
+cd frost
+
+# Install dependencies
+pnpm install
+
+# Start development database
+make dev-db
+
+# Push database schema
+pnpm db:push
+
+# Start development server
+pnpm dev
+```
+
+The development server will start on `http://localhost:3000` with hot reloading enabled.
+
+## Project Structure
+
+Understanding the project structure is crucial for effective development:
+
+<FileTree>
+- frost/
+  - apps/
+    - fullstack/
+      - src/
+        - routes/           # File-based routing (pages + API)
+          - api/            # API endpoints
+          - __root.tsx      # Root layout
+          - index.tsx       # Homepage
+        - lib/
+          - database/       # Database schema and repositories
+            - schema.ts     # Drizzle schema definitions
+            - db.ts         # Database connection
+          - services/       # Business logic services
+            - TokenTrackingService.ts
+            - CustomerService.ts
+        - components/       # Reusable UI components
+          - ui/             # shadcn/ui components
+          - charts/         # Chart components
+        - styles/           # Global styles
+      - infrastructure/     # Docker configurations
+        - docker-compose.dev.yml
+        - docker-compose.prod.yml
+  - packages/               # Shared packages (if any)
+  - Makefile               # Development commands
+  - turbo.json             # Turborepo configuration
+  - pnpm-workspace.yaml    # pnpm workspace configuration
+</FileTree>
+
+## Development Commands
+
+### Core Commands
+
+```bash
+# Development
+pnpm dev            # Start development server
+pnpm build          # Build for production
+pnpm typecheck      # Run TypeScript checks
+pnpm lint           # Run ESLint
+
+# Database
+make dev-db         # Start PostgreSQL container
+make dev-db-down    # Stop database
+make dev-db-clean   # Remove database and all data
+pnpm db:push        # Push schema changes
+pnpm db:generate    # Generate migration files
+pnpm db:migrate     # Apply migrations
+pnpm db:studio      # Open Drizzle Studio GUI
+
+# Production
+make prod-up        # Start production stack
+make prod-down      # Stop production stack
+```
+
+### Database Management
+
+<Tabs>
+<TabItem label="Schema Changes">
+```bash
+# 1. Modify schema in src/lib/database/schema.ts
+# 2. Push changes to development database
+pnpm db:push
+
+# 3. Generate migration files for production
+
+pnpm db:generate
+
+# 4. Apply migrations
+
+pnpm db:migrate
+
+````
+</TabItem>
+
+<TabItem label="Database GUI">
+```bash
+# Open Drizzle Studio
+pnpm db:studio
+
+# Will open http://localhost:5555
+# Browse and edit data visually
+````
+
+</TabItem>
+
+<TabItem label="Reset Database">
+```bash
+# Clean slate database
+make dev-db-clean
+make dev-db
+pnpm db:push
+```
+</TabItem>
+</Tabs>
+
+## Adding New Features
+
+### 1. Database Changes
+
+When adding new features that require database changes:
+
+```typescript
+// apps/fullstack/src/lib/database/schema.ts
+import { pgTable, text, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
+
+export const newFeatureTable = pgTable("new_feature", {
+  id: text("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  data: jsonb("data"),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
+});
+```
+
+```bash
+# Push schema changes
+pnpm db:push
+
+# Generate migration for production
+pnpm db:generate
+```
+
+### 2. API Endpoints
+
+Add new API endpoints in the `src/routes/api/` directory:
+
+```typescript
+// apps/fullstack/src/routes/api/new-feature.ts
+import { createAPIFileRoute } from "@tanstack/start/api";
+import { json } from "@tanstack/start";
+import { z } from "zod";
+import { db } from "~/lib/database/db";
+import { newFeatureTable } from "~/lib/database/schema";
+
+const createFeatureSchema = z.object({
+  name: z.string().min(1),
+  data: z.record(z.any()).optional(),
+});
+
+export const Route = createAPIFileRoute("/api/new-feature")({
+  GET: async () => {
+    const features = await db.select().from(newFeatureTable);
+    return json({ features });
+  },
+
+  POST: async ({ request }) => {
+    const body = await request.json();
+    const validated = createFeatureSchema.parse(body);
+
+    const [newFeature] = await db
+      .insert(newFeatureTable)
+      .values(validated)
+      .returning();
+
+    return json({ feature: newFeature });
+  },
+});
+```
+
+### 3. Service Layer
+
+Create services for complex business logic:
+
+```typescript
+// apps/fullstack/src/lib/services/NewFeatureService.ts
+import { db } from "~/lib/database/db";
+import { newFeatureTable } from "~/lib/database/schema";
+import { eq } from "drizzle-orm";
+
+export class NewFeatureService {
+  static async createFeature(data: { name: string; data?: any }) {
+    const [feature] = await db.insert(newFeatureTable).values(data).returning();
+
+    return feature;
+  }
+
+  static async getFeatureById(id: string) {
+    const [feature] = await db
+      .select()
+      .from(newFeatureTable)
+      .where(eq(newFeatureTable.id, id));
+
+    return feature;
+  }
+
+  static async updateFeature(
+    id: string,
+    updates: Partial<{ name: string; data: any }>
+  ) {
+    const [updated] = await db
+      .update(newFeatureTable)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(newFeatureTable.id, id))
+      .returning();
+
+    return updated;
+  }
+}
+```
+
+### 4. UI Components
+
+Create reusable UI components:
+
+```typescript
+// apps/fullstack/src/components/NewFeatureCard.tsx
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+
+interface NewFeatureCardProps {
+  feature: {
+    id: string;
+    name: string;
+    data?: any;
+    createdAt: Date;
+  };
+}
+
+export function NewFeatureCard({ feature }: NewFeatureCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{feature.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-gray-600">
+          Created: {feature.createdAt.toLocaleDateString()}
+        </p>
+        {feature.data && (
+          <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">
+            {JSON.stringify(feature.data, null, 2)}
+          </pre>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### 5. Pages
+
+Add new pages using file-based routing:
+
+```typescript
+// apps/fullstack/src/routes/new-feature.tsx
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { NewFeatureCard } from "~/components/NewFeatureCard";
+
+function NewFeaturePage() {
+  const [features, setFeatures] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/new-feature")
+      .then((res) => res.json())
+      .then((data) => setFeatures(data.features));
+  }, []);
+
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">New Feature</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {features.map((feature) => (
+          <NewFeatureCard key={feature.id} feature={feature} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export const Route = createFileRoute("/new-feature")({
+  component: NewFeaturePage,
+});
+```
+
+## Code Style and Patterns
+
+### TypeScript Configuration
+
+Frost AI uses strict TypeScript configuration:
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true
+  }
+}
+```
+
+### Code Organization Patterns
+
+#### Repository Pattern
+
+```typescript
+// Use repositories for data access
+class CustomerRepository {
+  static async findBySlug(slug: string) {
+    // Database access logic
+  }
+}
+```
+
+#### Service Layer
+
+```typescript
+// Use services for business logic
+class BillingService {
+  static async calculateCost(usage: TokenUsage) {
+    // Business logic
+  }
+}
+```
+
+#### Zod Validation
+
+```typescript
+// Use Zod for all input validation
+const createCustomerSchema = z.object({
+  slug: z.string().min(1).max(50),
+  name: z.string().min(1).max(100),
+  metadata: z.record(z.any()).optional(),
+});
+```
+
+## Testing
+
+### Setting Up Tests
+
+```bash
+# Install testing dependencies
+pnpm add -D vitest @testing-library/react @testing-library/jest-dom
+
+# Create test files
+mkdir -p src/__tests__
+```
+
+### API Testing
+
+```typescript
+// src/__tests__/api/metering.test.ts
+import { describe, it, expect, beforeEach } from "vitest";
+import { createMockRequest } from "../utils/test-utils";
+
+describe("Token Metering API", () => {
+  beforeEach(async () => {
+    // Setup test database
+  });
+
+  it("should track token usage", async () => {
+    const request = createMockRequest({
+      method: "POST",
+      body: {
+        customerSlug: "test-customer",
+        agentSlug: "test-agent",
+        modelSlug: "gpt-4",
+        inputTokens: 100,
+        outputTokens: 50,
+      },
+    });
+
+    const response = await fetch("/api/metering/tokens", request);
+    const data = await response.json();
+
+    expect(data.cost).toBeDefined();
+    expect(data.id).toBeDefined();
+  });
+});
+```
+
+### Component Testing
+
+```typescript
+// src/__tests__/components/TokenUsageChart.test.tsx
+import { render, screen } from "@testing-library/react";
+import { TokenUsageChart } from "~/components/TokenUsageChart";
+
+describe("TokenUsageChart", () => {
+  it("renders usage data", () => {
+    const mockData = [{ date: "2024-01-01", tokens: 1000, cost: 0.02 }];
+
+    render(<TokenUsageChart data={mockData} />);
+
+    expect(screen.getByText("Token Usage")).toBeInTheDocument();
+  });
+});
+```
+
+## Debugging
+
+### Development Tools
+
+<CardGrid>
+  <Card title="🔍 Database Debugging" icon="database">
+    Use Drizzle Studio to inspect database state and query results.
+    ```bash
+    pnpm db:studio
+    ```
+  </Card>
+  <Card title="🐛 API Debugging" icon="setting">
+    Use browser DevTools Network tab or tools like Postman to test API endpoints.
+  </Card>
+  <Card title="📊 Performance Monitoring" icon="information">
+    Use React DevTools and browser Performance tab to profile components.
+  </Card>
+</CardGrid>
+
+### Common Debugging Scenarios
+
+```bash
+# Check database connections
+docker ps  # Verify database container is running
+
+# Check API endpoints
+curl http://localhost:3000/api/health
+
+# View application logs
+docker-compose logs -f app
+
+# Check database data
+pnpm db:studio  # Visual database explorer
+```
+
+## Performance Optimization
+
+### Database Optimization
+
+```typescript
+// Use indexes for frequently queried fields
+export const tokenUsage = pgTable(
+  "token_usage",
+  {
+    // ... other fields
+    customerSlug: text("customer_slug").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+  },
+  (table) => ({
+    customerSlugIdx: index("customer_slug_idx").on(table.customerSlug),
+    createdAtIdx: index("created_at_idx").on(table.createdAt),
+  })
+);
+```
+
+### API Response Optimization
+
+```typescript
+// Paginate large result sets
+export const Route = createAPIFileRoute("/api/usage")({
+  GET: async ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "50");
+
+    const usage = await db
+      .select()
+      .from(tokenUsage)
+      .limit(limit)
+      .offset((page - 1) * limit);
+
+    return json({ usage, pagination: { page, limit } });
+  },
+});
+```
+
+## Next Steps
+
+<CardGrid>
+  <Card title="🚀 Deployment" icon="rocket">
+    Learn how to deploy Frost AI to production environments.
+    [Deployment Guide →](/guides/deployment/)
+  </Card>
+  <Card title="📚 API Reference" icon="document">
+    Explore all available API endpoints and examples.
+    [API Reference →](/api/overview/)
+  </Card>
+  <Card title="🔧 Best Practices" icon="star">
+    Follow best practices for security, performance, and maintainability.
+    [Best Practices →](/best-practices/api-usage/)
+  </Card>
+</CardGrid>
+
+## Getting Help
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/frozen-labs/frost/issues)
+- **Discussions**: [Community discussions](https://github.com/frozen-labs/frost/discussions)
+- **Documentation**: [Full documentation](/)

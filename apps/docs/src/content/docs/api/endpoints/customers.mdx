@@ -1,0 +1,121 @@
+---
+title: Customer Management
+description: Create and manage customer records in Frost AI
+---
+
+import { Badge, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+The customer management endpoints allow you to create, retrieve, update, and manage customer records in Frost AI. Customers are the top-level entity for organizing usage tracking and billing.
+
+## Endpoints Overview
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/customers` | Create a new customer |
+| `GET` | `/api/customers` | List all customers |
+| `GET` | `/api/customers/{slug}` | Get a specific customer |
+| `PUT` | `/api/customers/{slug}` | Update a customer |
+| `DELETE` | `/api/customers/{slug}` | Delete a customer |
+
+
+## Create Customer
+
+### Endpoint
+
+```http
+POST /api/customers
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `slug` | string | ✅ | Unique identifier (URL-safe, lowercase) |
+| `name` | string | ✅ | Display name for the customer |
+
+### Request Schema
+
+```json
+{
+  "slug": "string (1-50 chars, lowercase, alphanumeric + hyphens)",
+  "name": "string (1-100 chars)"
+}
+```
+
+### Response
+
+**Status:** `201 Created`
+
+```json
+{
+  "id": "01234567-89ab-cdef-0123-456789abcdef",
+  "slug": "acme-corp",
+  "name": "ACME Corporation",
+  "createdAt": "2024-01-01T12:00:00.000Z",
+  "updatedAt": "2024-01-01T12:00:00.000Z"
+}
+```
+
+### Examples
+
+<Tabs>
+<TabItem label="Basic Customer">
+```bash
+curl -X POST http://localhost:3000/api/customers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "acme-corp",
+    "name": "ACME Corporation"
+  }'
+```
+</TabItem>
+
+<TabItem label="With Metadata">
+```bash
+curl -X POST http://localhost:3000/api/customers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "startup-xyz",
+    "name": "StartupXYZ Inc.",
+    "metadata": {
+      "tier": "growth",
+      "industry": "fintech",
+      "employees": 50,
+      "region": "us-west-2",
+      "signupSource": "website",
+      "billingContact": "billing@startupxyz.com"
+    }
+  }'
+```
+</TabItem>
+
+<TabItem label="JavaScript">
+```javascript
+const response = await fetch('http://localhost:3000/api/customers', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    slug: 'tech-solutions',
+    name: 'Tech Solutions Ltd.',
+    metadata: {
+      tier: 'professional',
+      monthlyBudget: 5000,
+      primaryContact: 'John Smith',
+      timezone: 'UTC'
+    }
+  })
+});
+
+const customer = await response.json();
+console.log('Customer created:', customer.slug);
+```
+</TabItem>
+</Tabs>
+
+
+## Related Endpoints
+
+- [Token Tracking →](/api/endpoints/tokens/) - Track customer AI usage
+- [Signal Tracking →](/api/endpoints/signals/) - Track customer business events
+- [Health Check →](/api/endpoints/health/) - Monitor API status
+- [API Overview →](/api/overview/) - Complete API documentation
