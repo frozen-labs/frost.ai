@@ -10,13 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+import { Combobox } from "~/components/ui/combobox";
 import {
   getAgentsList,
   getCustomersList,
@@ -158,125 +152,119 @@ export function AgentProfitabilityDashboard({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Filters and Date Range */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {!agentId
-              ? "All Agents"
-              : !customerId
-              ? "Agent"
-              : "Agent & Customer"}{" "}
-            Profitability
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            {/* Selectors Row */}
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Agent</label>
-                <Select
-                  value={agentId || "all"}
-                  onValueChange={handleAgentChange}
-                  disabled={selectorsLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Agents</SelectItem>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+    <div className="flex gap-6">
+      {/* Left Side - Main Content */}
+      <div className="flex-1 space-y-6">
+        {/* Filters and Date Range */}
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {!agentId
+                ? "All Agents"
+                : !customerId
+                ? "Agent"
+                : "Agent & Customer"}{" "}
+              Profitability
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-4">
+              {/* Selectors Row */}
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium mb-2 block">Agent</label>
+                  <Combobox
+                    options={[
+                      { value: "all", label: "All Agents" },
+                      ...agents.map((agent) => ({
+                        value: agent.id,
+                        label: agent.name,
+                      })),
+                    ]}
+                    value={agentId || "all"}
+                    onValueChange={handleAgentChange}
+                    placeholder="All Agents"
+                    searchPlaceholder="Search agents..."
+                    emptyText="No agent found."
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-sm font-medium mb-2 block">
+                    Customer
+                  </label>
+                  <Combobox
+                    options={[
+                      { value: "all", label: "All Customers" },
+                      ...customers.map((customer) => ({
+                        value: customer.id,
+                        label: customer.name,
+                      })),
+                    ]}
+                    value={customerId || "all"}
+                    onValueChange={handleCustomerChange}
+                    placeholder="All Customers"
+                    searchPlaceholder="Search customers..."
+                    emptyText="No customer found."
+                  />
+                </div>
               </div>
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">
-                  Customer
-                </label>
-                <Select
-                  value={customerId || "all"}
-                  onValueChange={handleCustomerChange}
-                  disabled={selectorsLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Customers</SelectItem>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Date Range Row */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(dateRange.from, "PPP")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.from}
+                        defaultMonth={dateRange.from}
+                        onSelect={(date) =>
+                          date && setDateRange({ ...dateRange, from: date })
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <span className="text-muted-foreground">to</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(dateRange.to, "PPP")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.to}
+                        defaultMonth={dateRange.to}
+                        onSelect={(date) =>
+                          date && setDateRange({ ...dateRange, to: date })
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <Button onClick={fetchData} disabled={loading}>
+                  {loading ? "Loading..." : "Refresh"}
+                </Button>
               </div>
             </div>
-            {/* Date Range Row */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(dateRange.from, "PPP")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.from}
-                      defaultMonth={dateRange.from}
-                      onSelect={(date) =>
-                        date && setDateRange({ ...dateRange, from: date })
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-                <span className="text-muted-foreground">to</span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(dateRange.to, "PPP")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.to}
-                      defaultMonth={dateRange.to}
-                      onSelect={(date) =>
-                        date && setDateRange({ ...dateRange, to: date })
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <Button onClick={fetchData} disabled={loading}>
-                {loading ? "Loading..." : "Refresh"}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-        {/* Left Column - KPI Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+        {/* KPI Cards */}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <KPIBox
             title="Total Revenue"
             value={formatCurrency(data.revenue)}
@@ -300,10 +288,12 @@ export function AgentProfitabilityDashboard({
             isNegative={data.profitMargin < 0}
           />
         </div>
+      </div>
 
-        {/* Right Column - Revenue Breakdown */}
-        {data.revenue > 0 && (
-          <Card className="h-fit">
+      {/* Right Side - Revenue Breakdown */}
+      <div className="w-80">
+        {data.revenue > 0 ? (
+          <Card className="h-fit sticky top-6">
             <CardHeader>
               <CardTitle>Revenue Breakdown</CardTitle>
             </CardHeader>
@@ -338,6 +328,15 @@ export function AgentProfitabilityDashboard({
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="h-fit sticky top-6">
+            <CardHeader>
+              <CardTitle>Revenue Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">No revenue data available for the selected period.</p>
             </CardContent>
           </Card>
         )}
