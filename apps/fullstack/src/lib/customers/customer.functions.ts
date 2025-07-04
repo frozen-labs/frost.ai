@@ -185,6 +185,7 @@ export const createCreditAllocation = createServerFn({ method: "POST" })
     agentId: z.string(),
     signalId: z.string(),
     creditsCents: z.number(),
+    priceTotal: z.number().optional(),
   }))
   .handler(async ({ data }) => {
     const { creditAllocationsRepository } = await import("~/lib/credit-allocations/credit-allocations.repo");
@@ -193,6 +194,7 @@ export const createCreditAllocation = createServerFn({ method: "POST" })
       agentId: data.agentId,
       signalId: data.signalId,
       creditsCents: data.creditsCents,
+      priceTotal: data.priceTotal,
     });
   });
 
@@ -232,3 +234,4 @@ export const deleteCustomer = createServerFn({ method: "POST" })
     await customerRepository.delete(data.id);
     return { success: true };
   });
+

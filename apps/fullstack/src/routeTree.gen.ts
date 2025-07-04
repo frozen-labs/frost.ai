@@ -20,6 +20,7 @@ import { Route as AgentsIndexRouteImport } from './routes/agents/index'
 import { Route as ModelsModelIdRouteImport } from './routes/models/$modelId'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers/$customerId'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
+import { ServerRoute as ApiCreditsTopupServerRouteImport } from './routes/api/credits-topup'
 import { ServerRoute as ApiHealthIndexServerRouteImport } from './routes/api/health/index'
 import { ServerRoute as ApiCustomersIndexServerRouteImport } from './routes/api/customers/index'
 import { ServerRoute as ApiSignalsTrackServerRouteImport } from './routes/api/signals/track'
@@ -72,6 +73,11 @@ const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
   id: '/$agentId',
   path: '/$agentId',
   getParentRoute: () => AgentsRouteRoute,
+} as any)
+const ApiCreditsTopupServerRoute = ApiCreditsTopupServerRouteImport.update({
+  id: '/api/credits-topup',
+  path: '/api/credits-topup',
+  getParentRoute: () => rootServerRouteImport,
 } as any)
 const ApiHealthIndexServerRoute = ApiHealthIndexServerRouteImport.update({
   id: '/api/health/',
@@ -178,6 +184,7 @@ export interface RootRouteChildren {
   ModelsIndexRoute: typeof ModelsIndexRoute
 }
 export interface FileServerRoutesByFullPath {
+  '/api/credits-topup': typeof ApiCreditsTopupServerRoute
   '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
   '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
@@ -185,6 +192,7 @@ export interface FileServerRoutesByFullPath {
   '/api/health': typeof ApiHealthIndexServerRoute
 }
 export interface FileServerRoutesByTo {
+  '/api/credits-topup': typeof ApiCreditsTopupServerRoute
   '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
   '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
@@ -193,6 +201,7 @@ export interface FileServerRoutesByTo {
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
+  '/api/credits-topup': typeof ApiCreditsTopupServerRoute
   '/api/metering/signals': typeof ApiMeteringSignalsServerRoute
   '/api/metering/tokens': typeof ApiMeteringTokensServerRoute
   '/api/signals/track': typeof ApiSignalsTrackServerRoute
@@ -202,6 +211,7 @@ export interface FileServerRoutesById {
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
   fullPaths:
+    | '/api/credits-topup'
     | '/api/metering/signals'
     | '/api/metering/tokens'
     | '/api/signals/track'
@@ -209,6 +219,7 @@ export interface FileServerRouteTypes {
     | '/api/health'
   fileServerRoutesByTo: FileServerRoutesByTo
   to:
+    | '/api/credits-topup'
     | '/api/metering/signals'
     | '/api/metering/tokens'
     | '/api/signals/track'
@@ -216,6 +227,7 @@ export interface FileServerRouteTypes {
     | '/api/health'
   id:
     | '__root__'
+    | '/api/credits-topup'
     | '/api/metering/signals'
     | '/api/metering/tokens'
     | '/api/signals/track'
@@ -224,6 +236,7 @@ export interface FileServerRouteTypes {
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
+  ApiCreditsTopupServerRoute: typeof ApiCreditsTopupServerRoute
   ApiMeteringSignalsServerRoute: typeof ApiMeteringSignalsServerRoute
   ApiMeteringTokensServerRoute: typeof ApiMeteringTokensServerRoute
   ApiSignalsTrackServerRoute: typeof ApiSignalsTrackServerRoute
@@ -300,6 +313,13 @@ declare module '@tanstack/react-router' {
 }
 declare module '@tanstack/react-start/server' {
   interface ServerFileRoutesByPath {
+    '/api/credits-topup': {
+      id: '/api/credits-topup'
+      path: '/api/credits-topup'
+      fullPath: '/api/credits-topup'
+      preLoaderRoute: typeof ApiCreditsTopupServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/health/': {
       id: '/api/health/'
       path: '/api/health'
@@ -365,6 +385,7 @@ export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
+  ApiCreditsTopupServerRoute: ApiCreditsTopupServerRoute,
   ApiMeteringSignalsServerRoute: ApiMeteringSignalsServerRoute,
   ApiMeteringTokensServerRoute: ApiMeteringTokensServerRoute,
   ApiSignalsTrackServerRoute: ApiSignalsTrackServerRoute,

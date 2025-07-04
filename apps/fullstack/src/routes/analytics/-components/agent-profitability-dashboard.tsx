@@ -273,30 +273,74 @@ export function AgentProfitabilityDashboard({
         </CardContent>
       </Card>
 
-      {/* KPI Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KPIBox
-          title="Total Revenue"
-          value={formatCurrency(data.revenue)}
-          subtitle={`${data.signalCallCount} signal calls`}
-        />
-        <KPIBox
-          title="Total Costs"
-          value={formatCurrency(data.costs)}
-          subtitle={`${data.tokenUsageCount} AI requests`}
-        />
-        <KPIBox
-          title="Profit"
-          value={formatCurrency(data.profit)}
-          subtitle={`${data.periodDays} day period`}
-          isNegative={data.profit < 0}
-        />
-        <KPIBox
-          title="Profit Margin"
-          value={`${data.profitMargin.toFixed(1)}%`}
-          subtitle={data.revenue === 0 ? "No revenue" : ""}
-          isNegative={data.profitMargin < 0}
-        />
+      {/* Main Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        {/* Left Column - KPI Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+          <KPIBox
+            title="Total Revenue"
+            value={formatCurrency(data.revenue)}
+            subtitle={`${data.signalCallCount} signal calls`}
+          />
+          <KPIBox
+            title="Total Costs"
+            value={formatCurrency(data.costs)}
+            subtitle={`${data.tokenUsageCount} AI requests`}
+          />
+          <KPIBox
+            title="Profit"
+            value={formatCurrency(data.profit)}
+            subtitle={`${data.periodDays} day period`}
+            isNegative={data.profit < 0}
+          />
+          <KPIBox
+            title="Profit Margin"
+            value={`${data.profitMargin.toFixed(1)}%`}
+            subtitle={data.revenue === 0 ? "No revenue" : ""}
+            isNegative={data.profitMargin < 0}
+          />
+        </div>
+
+        {/* Right Column - Revenue Breakdown */}
+        {data.revenue > 0 && (
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle>Revenue Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Signal Revenue</span>
+                  <span className="font-semibold">{formatCurrency(data.signalRevenue)}</span>
+                </div>
+                {data.setupFeeRevenue > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Setup Fees</span>
+                    <span className="font-semibold">{formatCurrency(data.setupFeeRevenue)}</span>
+                  </div>
+                )}
+                {data.platformFeeRevenue > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Platform Fees</span>
+                    <span className="font-semibold">{formatCurrency(data.platformFeeRevenue)}</span>
+                  </div>
+                )}
+                {data.creditPurchaseRevenue > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Credit Sales</span>
+                    <span className="font-semibold">{formatCurrency(data.creditPurchaseRevenue)}</span>
+                  </div>
+                )}
+                <div className="border-t pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-bold">Total Revenue</span>
+                    <span className="font-bold">{formatCurrency(data.revenue)}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

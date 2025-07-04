@@ -300,6 +300,35 @@ export const agentFeeTransactions = pgTable(
   ]
 );
 
+// Credit Purchases (for tracking credit sales revenue)
+export const creditPurchases = pgTable(
+  "credit_purchases",
+  {
+    id: pgUuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidV7()),
+    customerId: pgUuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    agentId: pgUuid("agent_id")
+      .notNull()
+      .references(() => agents.id, { onDelete: "cascade" }),
+    signalId: pgUuid("signal_id")
+      .notNull()
+      .references(() => agentSignals.id, { onDelete: "cascade" }),
+    creditAmountCents: integer("credit_amount_cents").notNull(),
+    pricePaidCents: integer("price_paid_cents").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("credit_purchases_customer_idx").on(table.customerId),
+    index("credit_purchases_agent_idx").on(table.agentId),
+    index("credit_purchases_created_idx").on(table.createdAt),
+  ]
+);
+
 // ============================================================================
 // RELATIONS
 // ============================================================================
@@ -388,6 +417,21 @@ const agentFeeTransactionsRelations = relations(agentFeeTransactions, ({ one }) 
   }),
 }));
 
+const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
+  customer: one(customers, {
+    fields: [creditPurchases.customerId],
+    references: [customers.id],
+  }),
+  agent: one(agents, {
+    fields: [creditPurchases.agentId],
+    references: [agents.id],
+  }),
+  signal: one(agentSignals, {
+    fields: [creditPurchases.signalId],
+    references: [agentSignals.id],
+  }),
+}));
+
 // ============================================================================
 // ZOD SCHEMAS (for validation)
 // ============================================================================
@@ -427,3 +471,5 @@ export type CustomerCreditAllocation = typeof customerCreditAllocations.$inferSe
 export type NewCustomerCreditAllocation = typeof customerCreditAllocations.$inferInsert;
 export type AgentFeeTransaction = typeof agentFeeTransactions.$inferSelect;
 export type NewAgentFeeTransaction = typeof agentFeeTransactions.$inferInsert;
+export type CreditPurchase = typeof creditPurchases.$inferSelect;
+export type NewCreditPurchase = typeof creditPurchases.$inferInsert;

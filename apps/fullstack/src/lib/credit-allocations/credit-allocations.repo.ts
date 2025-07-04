@@ -1,10 +1,51 @@
 import { and, eq, sql } from "drizzle-orm";
-import { customerCreditAllocations, db, NewCustomerCreditAllocation, CustomerCreditAllocation } from "~/lib/database/server";
+import { customerCreditAllocations, creditPurchases, db, NewCustomerCreditAllocation, CustomerCreditAllocation } from "~/lib/database/server";
 
 export const creditAllocationsRepository = {
-  async create(data: NewCustomerCreditAllocation): Promise<CustomerCreditAllocation> {
-    const [allocation] = await db.insert(customerCreditAllocations).values(data).returning();
-    return allocation;
+  async create(data: NewCustomerCreditAllocation & { priceTotal?: number }): Promise<CustomerCreditAllocation> {
+    return await db.transaction(async (tx) => {
+      // Create or update allocation
+      const existing = await this.findByCustomerAgentSignal(
+        data.customerId, 
+        data.agentId, 
+        data.signalId
+      );
+      
+      let allocation: CustomerCreditAllocation;
+      if (existing) {
+        // Add to existing credits
+        const newCredits = existing.creditsCents + (data.creditsCents || 0);
+        const [updated] = await tx
+          .update(customerCreditAllocations)
+          .set({ creditsCents: newCredits, updatedAt: new Date() })
+          .where(eq(customerCreditAllocations.id, existing.id))
+          .returning();
+        allocation = updated;
+      } else {
+        // Create new allocation
+        const [created] = await tx.insert(customerCreditAllocations).values({
+          customerId: data.customerId,
+          agentId: data.agentId,
+          signalId: data.signalId,
+          creditsCents: data.creditsCents || 0,
+        }).returning();
+        allocation = created;
+      }
+      
+      // If price provided, create purchase record
+      if (data.priceTotal && data.priceTotal > 0) {
+        const pricePaidCents = Math.round(data.priceTotal * 100);
+        await tx.insert(creditPurchases).values({
+          customerId: data.customerId,
+          agentId: data.agentId,
+          signalId: data.signalId,
+          creditAmountCents: data.creditsCents || 0,
+          pricePaidCents,
+        });
+      }
+      
+      return allocation;
+    });
   },
 
   async findById(id: string): Promise<CustomerCreditAllocation | null> {

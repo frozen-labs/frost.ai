@@ -290,10 +290,11 @@ function CustomerFormPage() {
     navigate({ to: "/customers" });
   };
 
-  // Handle adding new allocation
+  // Handle adding new allocation (enhanced to optionally handle purchases)
   const handleAddAllocation = async (
     option: (typeof agentSignalOptions)[0],
-    credits: number
+    credits: number,
+    price?: number
   ) => {
     // For new customers, just add to local state
     if (isNewCustomer) {
@@ -319,6 +320,7 @@ function CustomerFormPage() {
           agentId: option.agentId,
           signalId: option.signalId,
           creditsCents: credits,
+          priceTotal: price,
         },
       });
 
@@ -335,9 +337,14 @@ function CustomerFormPage() {
       }
       
       setSearchTerm("");
-      toast.success("Credit allocation added");
+      
+      if (price && price > 0) {
+        toast.success(`Purchased ${(credits / 100).toFixed(2)} credits for $${price.toFixed(2)}`);
+      } else {
+        toast.success("Credit allocation added");
+      }
     } catch (error) {
-      toast.error("Failed to add credit allocation");
+      toast.error(price && price > 0 ? "Failed to purchase credits" : "Failed to add credit allocation");
       console.error(error);
     }
   };
@@ -939,12 +946,38 @@ function CustomerFormPage() {
                               className="w-20"
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                  const value = (e.target as HTMLInputElement)
-                                    .value;
-                                  if (value && /^\d*\.?\d*$/.test(value)) {
-                                    const cents = parseCurrencyInput(value);
-                                    handleAddAllocation(option, cents);
-                                    (e.target as HTMLInputElement).value = "";
+                                  const creditInput = e.target as HTMLInputElement;
+                                  const priceInput = creditInput.parentElement?.querySelector("input:nth-child(2)") as HTMLInputElement;
+                                  const creditValue = creditInput.value;
+                                  const priceValue = priceInput?.value;
+                                  
+                                  if (creditValue && /^\d*\.?\d*$/.test(creditValue)) {
+                                    const cents = parseCurrencyInput(creditValue);
+                                    const price = priceValue && /^\d*\.?\d*$/.test(priceValue) ? parseFloat(priceValue) : undefined;
+                                    handleAddAllocation(option, cents, price);
+                                    creditInput.value = "";
+                                    if (priceInput) priceInput.value = "";
+                                  }
+                                }
+                              }}
+                            />
+                            <Input
+                              type="text"
+                              placeholder="Price (optional)"
+                              className="w-24"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  const priceInput = e.target as HTMLInputElement;
+                                  const creditInput = priceInput.parentElement?.querySelector("input:first-child") as HTMLInputElement;
+                                  const creditValue = creditInput?.value;
+                                  const priceValue = priceInput.value;
+                                  
+                                  if (creditValue && /^\d*\.?\d*$/.test(creditValue)) {
+                                    const cents = parseCurrencyInput(creditValue);
+                                    const price = priceValue && /^\d*\.?\d*$/.test(priceValue) ? parseFloat(priceValue) : undefined;
+                                    handleAddAllocation(option, cents, price);
+                                    creditInput.value = "";
+                                    priceInput.value = "";
                                   }
                                 }
                               }}
@@ -952,15 +985,18 @@ function CustomerFormPage() {
                             <Button
                               size="sm"
                               onClick={(e) => {
-                                const input =
-                                  e.currentTarget.parentElement?.querySelector(
-                                    "input"
-                                  ) as HTMLInputElement;
-                                const value = input?.value;
-                                if (value && /^\d*\.?\d*$/.test(value)) {
-                                  const cents = parseCurrencyInput(value);
-                                  handleAddAllocation(option, cents);
-                                  input.value = "";
+                                const parent = e.currentTarget.parentElement;
+                                const creditInput = parent?.querySelector("input:first-child") as HTMLInputElement;
+                                const priceInput = parent?.querySelector("input:nth-child(2)") as HTMLInputElement;
+                                const creditValue = creditInput?.value;
+                                const priceValue = priceInput?.value;
+                                
+                                if (creditValue && /^\d*\.?\d*$/.test(creditValue)) {
+                                  const cents = parseCurrencyInput(creditValue);
+                                  const price = priceValue && /^\d*\.?\d*$/.test(priceValue) ? parseFloat(priceValue) : undefined;
+                                  handleAddAllocation(option, cents, price);
+                                  creditInput.value = "";
+                                  priceInput.value = "";
                                 }
                               }}
                             >
