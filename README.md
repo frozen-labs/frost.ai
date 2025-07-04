@@ -22,6 +22,8 @@
   <a href="https://github.com/frozen-labs/frost/issues">Report an Issue</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/frozen-labs/frost/issues">Request a Feature</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://docs.frostai.dev">Docs</a>
 </p>
 
 ---
@@ -48,110 +50,9 @@
 - **5-Minute Setup**: Launch locally with Docker.
 - **Self-Hosted & Secure**: Your data, your infrastructure. Total privacy.
 
-## Deploy in 5 Minutes
+## Documentation
 
-Deploy your own instance of Frost locally for development and testing.
-
-### Prerequisites
-
-- **Docker** and **Docker Compose**: [Get Docker](https://www.docker.com/get-started)
-- **Git**: [Install Git](https://git-scm.com/downloads)
-- **pnpm**: `npm install -g pnpm`
-
-### Getting Started
-
-```sh
-git clone https://github.com/frozen-labs/frost.git
-cd frost.ai
-```
-
-To start the application (includes the database), run:
-
-```sh
-cp /apps/fullstack/.env.example /apps/fullstack/.env
-```
-
-```sh
-make prod-up
-```
-
-That's it! Frost is now running at [**http://localhost:3000**](http://localhost:3000).
-
-To stop the application, run:
-
-```sh
-make prod-down
-```
-
-## Usage: How to Track an AI Call
-
-Just make an API call to track your costs.
-
-### cURL
-
-```sh
-curl -X POST http://localhost:3000/api/signals/track \
--H "Content-Type: application/json" \
--d '{
-  "customerId": "c2f4a5f0-1b3c-4d5e-6f7g-8h9i0j1k2l3m",
-  "agentId": "customer-support-agent",
-  "signalId": "email-processed",
-  "metadata": {
-    "used_tokens": 450,
-    "model_used": "gpt-4-turbo",
-    "prompt_id": "prompt_xyz789"
-  }
-}'
-```
-
-### Python (`requests`)
-
-```python
-import requests
-
-payload = {
-  "customerId": "c2f4a5f0-1b3c-4d5e-6f7g-8h9i0j1k2l3m",
-  "agentId": "customer-support-agent",
-  "signalId": "email-processed",
-  "metadata": {
-    "used_tokens": 450,
-    "model_used": "gpt-4-turbo",
-    "prompt_id": "prompt_xyz789"
-  }
-}
-
-requests.post("http://localhost:3000/api/signals/track", json=payload)
-```
-
-### TypeScript/JS (`fetch`)
-
-```javascript
-const payload = {
-  customerId: "c2f4a5f0-1b3c-4d5e-6f7g-8h9i0j1k2l3m",
-  agentId: "customer-support-agent",
-  signalId: "email-processed",
-  metadata: {
-    used_tokens: 450,
-    model_used: "gpt-4-turbo",
-    prompt_id: "prompt_xyz789",
-  },
-};
-
-fetch("http://localhost:3000/api/signals/track", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload),
-});
-```
-
-## Technology Stack
-
-- **Framework**: [TanStack Start](https://tanstack.com/start/)
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI + Tailwind CSS)
-- **Database**: [PostgreSQL](https://www.postgresql.org/)
-- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
-- **Monorepo Tooling**: [Turborepo](https://turbo.build/) & [pnpm](https://pnpm.io/)
-- **Containerization**: [Docker](https://www.docker.com/)
+Check out [Frost AI docs](https://docs.frostai.dev) or jump into the [Frost Discord server](https://discord.gg/YhRK2JSuQa).
 
 ## Roadmap
 
